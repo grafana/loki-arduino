@@ -38,7 +38,12 @@ bool LokiClient::begin()
     return _begin();
 };
 
-bool LokiClient::send(Entry *entry)
+bool LokiClient::send(Entry &entry)
 {
-    return _send(entry->toString());
+    return _send(entry.toString());
 };
+
+uint64_t LokiClient::getTimeNanos()
+{
+    return _getTimeNanos();
+}

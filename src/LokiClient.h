@@ -24,7 +24,8 @@ public:
     void setWifiPass(const char *wifiPass);
 
     bool begin();
-    bool send(Entry *entry);
+    bool send(Entry &entry);
+    uint64_t getTimeNanos();
 
 protected:
     String _url;
@@ -35,6 +36,7 @@ protected:
     String _wifiPass;
     virtual bool _begin() = 0;
     virtual bool _send(String entry) = 0;
+    virtual uint64_t _getTimeNanos() = 0;
 };
 
 #endif

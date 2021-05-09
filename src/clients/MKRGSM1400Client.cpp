@@ -10,4 +10,8 @@ bool MKRGSM1400Client::_send(String entry){
 
 };
 
+uint64_t MKRGSM1400Client::_getTimeNanos(){
+
+};
+
 #endif

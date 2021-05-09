@@ -4,9 +4,6 @@
 #include <Arduino.h>
 #include "LokiClient.h"
 
-#define LOKI_DEBUG
-
-
 
 #if defined(ESP32)
 

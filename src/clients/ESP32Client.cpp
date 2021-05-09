@@ -23,8 +23,21 @@ bool ESP32Client::_begin()
     _httpClient = new HTTPClient;
     _httpClient->setReuse(true);
     _httpClient->setUserAgent(UserAgent);
-
+    LOKI_SERIAL.println("Connecting wifi");
     _connect();
+
+    LOKI_DEBUG_PRINT("Setting up sntp and setting time from pool.ntp.org");
+    sntp_setoperatingmode(SNTP_OPMODE_POLL);
+    sntp_setservername(0, "172.20.31.1");
+    sntp_init();
+
+    while (sntp_get_sync_status() == SNTP_SYNC_STATUS_RESET)
+    {
+        delay(1000);
+        LOKI_DEBUG_PRINT(".");
+    }
+
+    LOKI_DEBUG_PRINTF("Time set succesfully, current time in nanos: %d\n", _getTimeNanos())
 }
 
 bool ESP32Client::_send(String entry)
@@ -42,11 +55,15 @@ bool ESP32Client::_send(String entry)
         int httpCode = _httpClient->POST(entry);
         if (httpCode > 0)
         {
-            LOKI_DEBUG_PRINTF("timefidget [HTTP] POST...  Code: %d\n", httpCode);
+            LOKI_DEBUG_PRINTF("Loki POST...  Code: %d ", httpCode);
+            if (httpCode >= 400) {
+                _httpClient->writeToStream(&LOKI_SERIAL);
+            }
+            LOKI_DEBUG_PRINTLN();
         }
         else
         {
-            LOKI_DEBUG_PRINTF("timefidget [HTTP] POST... Error: %s\n", _httpClient->errorToString(httpCode).c_str());
+            LOKI_DEBUG_PRINTF("Loki POST... Error: %s\n", _httpClient->errorToString(httpCode).c_str());
         }
 
         _httpClient->end();
@@ -68,12 +85,19 @@ void ESP32Client::_connect()
     while (WiFi.status() != WL_CONNECTED)
     {
         delay(500);
-        Serial.print(".");
+        LOKI_DEBUG_PRINT(".");
     }
     LOKI_DEBUG_PRINTLN("connected");
 
     LOKI_DEBUG_PRINT("IP address: ");
     LOKI_DEBUG_PRINTLN(WiFi.localIP());
 }
+
+uint64_t ESP32Client::_getTimeNanos()
+{
+    struct timeval tv_now;
+    gettimeofday(&tv_now, NULL);
+    return (uint64_t)tv_now.tv_sec * 1000000000L + (uint64_t)tv_now.tv_usec * 1000;
+};
 
 #endif

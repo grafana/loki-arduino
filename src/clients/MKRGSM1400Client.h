@@ -3,7 +3,7 @@
 
 #if defined(ARDUINO_SAMD_MKRGSM1400)
 
-#include "Loki.h"
+#include "LokiClient.h"
 
 class MKRGSM1400Client : public LokiClient
 {
@@ -13,6 +13,7 @@ public:
 protected:
     bool _begin();
     bool _send(String entry);
+    uint64_t _getTimeNanos();
 };
 
 #endif // ARDUINO_SAMD_MKRGSM1400

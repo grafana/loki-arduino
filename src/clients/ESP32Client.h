@@ -6,6 +6,8 @@
 #include "LokiClient.h"
 #include <HTTPClient.h>
 #include <WiFiClientSecure.h>
+#include <time.h>
+#include <esp_sntp.h>
 
 class ESP32Client : public LokiClient
 {
@@ -15,6 +17,7 @@ public:
 protected:
     bool _begin();
     bool _send(String entry);
+    uint64_t _getTimeNanos();
     
 
 private:

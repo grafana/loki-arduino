@@ -1,6 +1,8 @@
 #ifndef Util_h
 #define Util_h
 
+
+#define LOKI_DEBUG
 #define LOKI_SERIAL Serial
 
 #ifdef LOKI_DEBUG
