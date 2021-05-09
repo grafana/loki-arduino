@@ -5,6 +5,8 @@
 #include "Entry.h"
 #include "Util.h"
 
+#define LOKI_CLIENT_VERSION "0.1.0"
+
 class LokiClient
 {
 public:

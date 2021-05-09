@@ -1,11 +1,15 @@
 #include <Loki.h>
 
+Loki client;
+
 void setup() {
-  // put your setup code here, to run once:
-  Loki();
+  client.setUrl("");
+  client.setWifiSsid("");
+  client.setWifiPass("");
+  client.begin();
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  
 
 }

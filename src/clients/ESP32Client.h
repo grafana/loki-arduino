@@ -20,6 +20,8 @@ protected:
 private:
     WiFiClientSecure *_wifiClient;
     HTTPClient *_httpClient;
+
+    void _connect();
 };
 
 #endif // ESP32
