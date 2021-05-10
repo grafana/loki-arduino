@@ -23,6 +23,12 @@ bool ESP32Client::_begin()
     _httpClient = new HTTPClient;
     _httpClient->setReuse(true);
     _httpClient->setUserAgent(UserAgent);
+
+    if (_user && _user.length() > 0 && _pass && _pass.length() > 0)
+    {
+        _httpClient->setAuthorization(_user.c_str(), _pass.c_str());
+    }
+
     LOKI_SERIAL.println("Connecting wifi");
     _connect();
 
@@ -56,7 +62,8 @@ bool ESP32Client::_send(String entry)
         if (httpCode > 0)
         {
             LOKI_DEBUG_PRINTF("Loki POST...  Code: %d ", httpCode);
-            if (httpCode >= 400) {
+            if (httpCode >= 400)
+            {
                 _httpClient->writeToStream(&LOKI_SERIAL);
             }
             LOKI_DEBUG_PRINTLN();

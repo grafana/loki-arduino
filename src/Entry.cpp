@@ -16,7 +16,7 @@ void Entry::setTimeNanos(uint64_t ts)
 void Entry::addLabel(String key, String val)
 {
   //FIXME need to error if adding more than 15 labels
-  _labels[_labelCount] = LabelSet{
+  _labels[_labelCount] = Labels{
     key : key,
     val : val
   };
@@ -37,7 +37,8 @@ String Entry::toString()
   StaticJsonDocument<384> doc;
   JsonObject streams = doc["streams"].createNestedObject();
   JsonObject stream = streams.createNestedObject("stream");
-  for (int i=0; i<_labelCount; i++) {
+  for (int i = 0; i < _labelCount; i++)
+  {
     stream[_labels[i].key] = _labels[i].val;
   };
   JsonArray vals = streams["values"].createNestedArray();

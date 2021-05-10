@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 
-struct LabelSet {
+struct Labels {
     String key;
     String val;
 };
@@ -20,7 +20,7 @@ public:
 
 private:
     int _labelCount = 0;
-    LabelSet _labels[15];
+    Labels _labels[15];
     uint64_t _ts;
     String _val;
     String _out;
