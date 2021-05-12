@@ -13,7 +13,7 @@ struct LabelSet
 struct EntrySet
 {
     uint64_t tsNanos;
-    String val;
+    char *val;
 };
 
 class LokiStream

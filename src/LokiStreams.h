@@ -2,6 +2,15 @@
 #define Streams_H
 
 #include "LokiStream.h"
+#include "snappy/snappy.h"
+#include "proto/pb.h"
+#include "proto/pb_encode.h"
+#include "proto/logproto.pb.h"
+
+
+static bool callback_encode_push_request(pb_ostream_t *ostream, const pb_field_t *field, void *const *arg);
+static bool callback_encode_stream_adapter(pb_ostream_t *ostream, const pb_field_t *field, void *const *arg);
+static bool callback_encode_entry_adapter(pb_ostream_t *ostream, const pb_field_t *field, void *const *arg);
 
 class LokiStreams
 {
@@ -19,6 +28,7 @@ public:
 
     void addStream(LokiStream &stream);
     String toJson();
+    bool toProto(char *output,  size_t length);
 
 private:
     int _streamCount = 0;

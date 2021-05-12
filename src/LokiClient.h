@@ -36,7 +36,7 @@ protected:
     String _wifiSsid;
     String _wifiPass;
     virtual bool _begin() = 0;
-    virtual bool _send(String entry) = 0;
+    virtual bool _send(char *entry, size_t length) = 0;
     virtual uint64_t _getTimeNanos() = 0;
 };
 

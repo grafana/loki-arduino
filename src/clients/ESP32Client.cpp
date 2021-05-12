@@ -46,7 +46,7 @@ bool ESP32Client::_begin()
     LOKI_DEBUG_PRINTF("Time set succesfully, current time in nanos: %d\n", _getTimeNanos())
 }
 
-bool ESP32Client::_send(String entry)
+bool ESP32Client::_send(char *entry, size_t length)
 {
     if (WiFi.status() != WL_CONNECTED)
     {
@@ -58,7 +58,7 @@ bool ESP32Client::_send(String entry)
     {
         _httpClient->begin(_url);
         _httpClient->addHeader("Content-Type", "application/json");
-        int httpCode = _httpClient->POST(entry);
+        int httpCode = _httpClient->POST(reinterpret_cast<uint8_t *>(entry), length);
         if (httpCode > 0)
         {
             LOKI_DEBUG_PRINTF("Loki POST...  Code: %d ", httpCode);
