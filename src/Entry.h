@@ -4,7 +4,8 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 
-struct Labels {
+class Labels {
+public: 
     String key;
     String val;
 };

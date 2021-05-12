@@ -40,7 +40,7 @@ bool LokiClient::begin()
 
 bool LokiClient::send(Entry &entry)
 {
-    return _send(entry.toString());
+    //return _send(entry.toString());
 };
 
 uint64_t LokiClient::getTimeNanos()

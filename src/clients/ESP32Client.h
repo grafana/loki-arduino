@@ -16,7 +16,7 @@ public:
 
 protected:
     bool _begin();
-    bool _send(String entry);
+    bool _send(char *entry, size_t length);
     uint64_t _getTimeNanos();
     
 
