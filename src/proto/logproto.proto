@@ -2,12 +2,15 @@ syntax = "proto3";
 
 package logproto;
 
-import "nanopb.proto";
 import "timestamp.proto";
 
 
 service Pusher {
   rpc Push(PushRequest) returns (PushResponse) {};
+}
+
+message TestMessage {
+  int32 test = 1;
 }
 
 
@@ -20,12 +23,12 @@ message PushResponse {
 
 
 message StreamAdapter {
-  string labels = 1 [(nanopb).callback_datatype = "char*"];
+  string labels = 1;
   repeated EntryAdapter entries = 2;
 }
 
 message EntryAdapter {
   google.protobuf.Timestamp timestamp = 1;
-  string line = 2 [(nanopb).callback_datatype = "char*"];
+  string line = 2;
 }
 

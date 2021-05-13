@@ -20,15 +20,19 @@ typedef struct _logproto_PushResponse {
 } logproto_PushResponse;
 
 typedef struct _logproto_StreamAdapter { 
-    char* labels; 
+    pb_callback_t labels; 
     pb_callback_t entries; 
 } logproto_StreamAdapter;
 
 typedef struct _logproto_EntryAdapter { 
     bool has_timestamp;
     google_protobuf_Timestamp timestamp; 
-    char* line; 
+    pb_callback_t line; 
 } logproto_EntryAdapter;
+
+typedef struct _logproto_TestMessage { 
+    int32_t test; 
+} logproto_TestMessage;
 
 
 #ifdef __cplusplus
@@ -36,10 +40,12 @@ extern "C" {
 #endif
 
 /* Initializer values for message structs */
+#define logproto_TestMessage_init_default        {0}
 #define logproto_PushRequest_init_default        {{{NULL}, NULL}}
 #define logproto_PushResponse_init_default       {0}
 #define logproto_StreamAdapter_init_default      {{{NULL}, NULL}, {{NULL}, NULL}}
 #define logproto_EntryAdapter_init_default       {false, google_protobuf_Timestamp_init_default, {{NULL}, NULL}}
+#define logproto_TestMessage_init_zero           {0}
 #define logproto_PushRequest_init_zero           {{{NULL}, NULL}}
 #define logproto_PushResponse_init_zero          {0}
 #define logproto_StreamAdapter_init_zero         {{{NULL}, NULL}, {{NULL}, NULL}}
@@ -51,8 +57,14 @@ extern "C" {
 #define logproto_StreamAdapter_entries_tag       2
 #define logproto_EntryAdapter_timestamp_tag      1
 #define logproto_EntryAdapter_line_tag           2
+#define logproto_TestMessage_test_tag            1
 
 /* Struct field encoding specification for nanopb */
+#define logproto_TestMessage_FIELDLIST(X, a) \
+X(a, STATIC,   SINGULAR, INT32,    test,              1)
+#define logproto_TestMessage_CALLBACK NULL
+#define logproto_TestMessage_DEFAULT NULL
+
 #define logproto_PushRequest_FIELDLIST(X, a) \
 X(a, CALLBACK, REPEATED, MESSAGE,  streams,           1)
 #define logproto_PushRequest_CALLBACK pb_default_field_callback
@@ -67,25 +79,25 @@ X(a, CALLBACK, REPEATED, MESSAGE,  streams,           1)
 #define logproto_StreamAdapter_FIELDLIST(X, a) \
 X(a, CALLBACK, SINGULAR, STRING,   labels,            1) \
 X(a, CALLBACK, REPEATED, MESSAGE,  entries,           2)
-extern bool logproto_StreamAdapter_callback(pb_istream_t *istream, pb_ostream_t *ostream, const pb_field_t *field);
-#define logproto_StreamAdapter_CALLBACK logproto_StreamAdapter_callback
+#define logproto_StreamAdapter_CALLBACK pb_default_field_callback
 #define logproto_StreamAdapter_DEFAULT NULL
 #define logproto_StreamAdapter_entries_MSGTYPE logproto_EntryAdapter
 
 #define logproto_EntryAdapter_FIELDLIST(X, a) \
 X(a, STATIC,   OPTIONAL, MESSAGE,  timestamp,         1) \
 X(a, CALLBACK, SINGULAR, STRING,   line,              2)
-extern bool logproto_EntryAdapter_callback(pb_istream_t *istream, pb_ostream_t *ostream, const pb_field_t *field);
-#define logproto_EntryAdapter_CALLBACK logproto_EntryAdapter_callback
+#define logproto_EntryAdapter_CALLBACK pb_default_field_callback
 #define logproto_EntryAdapter_DEFAULT NULL
 #define logproto_EntryAdapter_timestamp_MSGTYPE google_protobuf_Timestamp
 
+extern const pb_msgdesc_t logproto_TestMessage_msg;
 extern const pb_msgdesc_t logproto_PushRequest_msg;
 extern const pb_msgdesc_t logproto_PushResponse_msg;
 extern const pb_msgdesc_t logproto_StreamAdapter_msg;
 extern const pb_msgdesc_t logproto_EntryAdapter_msg;
 
 /* Defines for backwards compatibility with code written before nanopb-0.4.0 */
+#define logproto_TestMessage_fields &logproto_TestMessage_msg
 #define logproto_PushRequest_fields &logproto_PushRequest_msg
 #define logproto_PushResponse_fields &logproto_PushResponse_msg
 #define logproto_StreamAdapter_fields &logproto_StreamAdapter_msg
@@ -96,6 +108,7 @@ extern const pb_msgdesc_t logproto_EntryAdapter_msg;
 /* logproto_StreamAdapter_size depends on runtime parameters */
 /* logproto_EntryAdapter_size depends on runtime parameters */
 #define logproto_PushResponse_size               0
+#define logproto_TestMessage_size                11
 
 #ifdef __cplusplus
 } /* extern "C" */
