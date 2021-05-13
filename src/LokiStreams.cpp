@@ -42,6 +42,15 @@ String LokiStreams::toJson(){
 
 bool LokiStreams::toProto(char *output, size_t length)
 {
+
+  for (int i = 0; i < streamPointer; i++)
+  {
+    for (int j = 0; j < streams[i]->batchPointer; j++)
+    {
+      LOKI_DEBUG_PRINTLN(streams[i]->batch[j]->val);
+    }
+  }
+
   LOKI_DEBUG_PRINTLN("1");
   uint8_t buffer[256];
   pb_ostream_t os = pb_ostream_from_buffer(buffer, sizeof(buffer));
@@ -70,11 +79,13 @@ bool LokiStreams::toProto(char *output, size_t length)
 
   LOKI_DEBUG_PRINT("Message: ");
 
-  for (uint8_t i = 0; i < os.bytes_written; i++) {
-    if (buffer[i] < 0x10) {
+  for (uint8_t i = 0; i < os.bytes_written; i++)
+  {
+    if (buffer[i] < 0x10)
+    {
       LOKI_DEBUG_PRINT(0);
     }
-    LOKI_DEBUG_PRINT(buffer[i],HEX);
+    LOKI_DEBUG_PRINT(buffer[i], HEX);
     // LOKI_DEBUG_PRINT(F(":"));
   }
   LOKI_DEBUG_PRINTLN();
@@ -128,8 +139,12 @@ static bool callback_encode_push_request(pb_ostream_t *ostream, const pb_field_t
 static bool callback_encode_entry_adapter(pb_ostream_t *ostream, const pb_field_t *field, void *const *arg)
 {
   LOKI_DEBUG_PRINTLN("3");
+  LOKI_DEBUG_PRINT("Tag: ");
+  LOKI_DEBUG_PRINT(field->tag);
+  LOKI_DEBUG_PRINTLN();
   LokiStream *stream = (LokiStream *)*arg;
-  if (!stream->batchPointer){
+  if (!stream->batchPointer)
+  {
     LOKI_DEBUG_PRINTLN("NO BATCHES")
     return true;
   }
@@ -140,16 +155,18 @@ static bool callback_encode_entry_adapter(pb_ostream_t *ostream, const pb_field_
     LOKI_DEBUG_PRINTLN(i);
     pb_encode_tag_for_field(ostream, field);
     logproto_EntryAdapter ea = {};
-    ea.timestamp.nanos = 1234567890;
+    ea.has_timestamp = true;
+    ea.timestamp.seconds = stream->batch[i]->tsNanos / 1000000000;
+    ea.timestamp.nanos = stream->batch[i]->tsNanos - (ea.timestamp.seconds * 1000000000);
     ea.line.arg = stream->batch[i];
     ea.line.funcs.encode = &callback_encode_line;
-    // ea.line = stream->batch[i]->val;
     pb_encode_submessage(ostream, logproto_EntryAdapter_fields, &ea);
   }
   return true;
 }
 
-static bool callback_encode_labels(pb_ostream_t *ostream, const pb_field_t *field, void *const *arg){
+static bool callback_encode_labels(pb_ostream_t *ostream, const pb_field_t *field, void *const *arg)
+{
   LokiStream *stream = (LokiStream *)*arg;
   pb_encode_tag_for_field(ostream, field);
   const char *str = "{foo=\"bar\"}";
@@ -157,9 +174,16 @@ static bool callback_encode_labels(pb_ostream_t *ostream, const pb_field_t *fiel
   return true;
 }
 
-static bool callback_encode_line(pb_ostream_t *ostream, const pb_field_t *field, void *const *arg){
+static bool callback_encode_line(pb_ostream_t *ostream, const pb_field_t *field, void *const *arg)
+{
   EntrySet *s = (EntrySet *)*arg;
-  // LOKI_DEBUG_PRINTLN(s->val)  
+  pb_encode_tag_for_field(ostream, field);
+  LOKI_DEBUG_PRINT("Tag: ");
+  LOKI_DEBUG_PRINT(field->tag);
+  LOKI_DEBUG_PRINTLN();
+  LOKI_DEBUG_PRINTLN(s->val);
+  pb_encode_string(ostream, ((const uint8_t *)s->val), strlen(s->val));
+  // LOKI_DEBUG_PRINTLN(s->val)
   return true;
 }
 
