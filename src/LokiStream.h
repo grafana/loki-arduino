@@ -2,7 +2,6 @@
 #define LokiStream_H
 
 #include <Arduino.h>
-#include <ArduinoJson.h>
 
 struct LabelSet
 {
@@ -36,7 +35,7 @@ public:
     uint8_t labelPointer = 0;
 
     void addLabel(String key, String val);
-    void addEntry(uint64_t tsNanos, String val);
+    void addEntry(uint64_t tsNanos, char *val);
     void resetEntries();
 
 private:

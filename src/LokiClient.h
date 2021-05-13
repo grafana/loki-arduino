@@ -2,7 +2,7 @@
 #define LokiClient_H
 
 #include <Arduino.h>
-#include "Entry.h"
+// #include "Entry.h"
 #include "LokiStreams.h"
 #include "Util.h"
 
@@ -25,7 +25,7 @@ public:
     void setWifiPass(const char *wifiPass);
 
     bool begin();
-    bool send(Entry &entry);
+    // bool send(Entry &entry);
     uint64_t getTimeNanos();
 
 protected:

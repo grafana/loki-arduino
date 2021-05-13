@@ -1,6 +1,6 @@
 #include "Entry.h"
 #include "snappy/snappy.h"
-#include "proto/logproto.pb.h"
+
 Entry::Entry()
 {
 }
@@ -14,15 +14,15 @@ void Entry::setTimeNanos(uint64_t ts)
   _ts = ts;
 };
 
-void Entry::addLabel(String key, String val)
-{
-  //FIXME need to error if adding more than 15 labels
-  _labels[_labelCount] = Labels{
-    key : key,
-    val : val
-  };
-  _labelCount++;
-};
+// void Entry::addLabel(String key, String val)
+// {
+//   //FIXME need to error if adding more than 15 labels
+//   _labels[_labelCount] = Labels{
+//     key : key,
+//     val : val
+//   };
+//   _labelCount++;
+// };
 
 void Entry::setVal(String val)
 {
