@@ -3,68 +3,52 @@
 
 #include <Arduino.h>
 
-struct LabelSet
-{
+struct LabelSet {
     String key;
     String val;
 };
 
-struct EntrySet
-{
+struct EntrySet {
     uint64_t tsNanos;
-    char *val;
+    char* val;
 };
 
-class EntryClass
-{
+
+
+class LokiStream {
 public:
-    EntryClass(int maxLength)
-    {
-        tsNanos = 0;
-        val = (char *)malloc(sizeof(char) * (maxLength + 1));
-    };
-
-    uint64_t tsNanos;
-    char *val;
-};
-
-class LokiStream
-{
-public:
-    LokiStream(int batchSize, int numberLabels) : _batchSize(batchSize), _numberLabels(numberLabels)
-    {
-
-        batch = new EntryClass *[batchSize];
-
-        //Pre-allocate the memory for each entry
-        for (int i = 0; i < batchSize; i++)
-        {
-            EntryClass *b = new EntryClass(10);
-            batch[i] = b;
-        }
-
-        // batch = new EntrySet *[batchSize];
-        labels = new LabelSet *[numberLabels];
-    };
-    ~LokiStream()
-    {
-        delete[] batch;
-        delete[] labels;
-    }
-    EntryClass **batch = nullptr;
-    uint8_t batchPointer = 0;
-
-    LabelSet **labels = nullptr;
-    uint8_t labelPointer = 0;
+    LokiStream(uint8_t batchSize, uint8_t numberLabels, uint8_t maxEntryLength);
+    ~LokiStream();
 
     void addLabel(String key, String val);
-    void addEntry(uint64_t tsNanos, char *val);
+    bool addEntry(uint64_t tsNanos, char* val, size_t length);
     void resetEntries();
 
+    const __FlashStringHelper* errmsg;
+
 private:
+    friend class LokiStreams;
+    class EntryClass;
+
     int _batchSize = 0;
     int _numberLabels = 0;
+
+    LokiStream::EntryClass** _batch = nullptr;
+    uint8_t _batchPointer = 0;
+
+    LabelSet** labels = nullptr;
+    uint8_t labelPointer = 0;
+
     String _uint64ToString(uint64_t input);
+};
+
+class LokiStream::EntryClass {
+public:
+    EntryClass(uint8_t maxLength);
+    ~EntryClass();
+    uint8_t maxLength;
+    uint64_t tsNanos;
+    char* val;
 };
 
 #endif

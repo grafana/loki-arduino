@@ -1,15 +1,5 @@
 #include "LokiStreams.h"
 
-// // Empty implementations of these, they are auto generated because we defined the callback_datatype on the proto but instead use the above callback functions ^^
-// bool logproto_EntryAdapter_callback(pb_istream_t *istream, pb_ostream_t *ostream, const pb_field_t *field){
-//   LOKI_DEBUG_PRINTLN("CALLBACK CALLED ENTRY");
-//   return true;
-// };
-// bool logproto_StreamAdapter_callback(pb_istream_t *istream, pb_ostream_t *ostream, const pb_field_t *field){
-//   LOKI_DEBUG_PRINTLN("CALLBACK CALLED STREAM");
-//   return true;
-// };
-
 void LokiStreams::addStream(LokiStream *stream)
 {
   streams[streamPointer] = stream;
@@ -43,17 +33,18 @@ String LokiStreams::toJson(){
 bool LokiStreams::toProto(char *output, size_t length)
 {
 
-  for (int i = 0; i < streamPointer; i++)
-  {
-    for (int j = 0; j < streams[i]->batchPointer; j++)
-    {
-      LOKI_DEBUG_PRINTLN(streams[i]->batch[j]->val);
-    }
-  }
+  // for (int i = 0; i < streamPointer; i++)
+  // {
+  //   for (int j = 0; j < streams[i]->batchPointer; j++)
+  //   {
+  //     LOKI_DEBUG_PRINTLN(streams[i]->batch[j]->val);
+  //   }
+  // }
 
   LOKI_DEBUG_PRINTLN("1");
   uint8_t buffer[256];
   pb_ostream_t os = pb_ostream_from_buffer(buffer, sizeof(buffer));
+  
   StreamTuple tp = StreamTuple{
     strs : streams,
     strCnt : streamPointer
@@ -109,7 +100,7 @@ bool LokiStreams::toProto(char *output, size_t length)
   return true;
 }
 
-static bool callback_encode_push_request(pb_ostream_t *ostream, const pb_field_t *field, void *const *arg)
+bool LokiStreams::callback_encode_push_request(pb_ostream_t *ostream, const pb_field_t *field, void *const *arg)
 {
   LOKI_DEBUG_PRINTLN("2");
   StreamTuple *tp = (StreamTuple *)*arg;
@@ -136,36 +127,36 @@ static bool callback_encode_push_request(pb_ostream_t *ostream, const pb_field_t
   return true;
 };
 
-static bool callback_encode_entry_adapter(pb_ostream_t *ostream, const pb_field_t *field, void *const *arg)
+bool LokiStreams::callback_encode_entry_adapter(pb_ostream_t *ostream, const pb_field_t *field, void *const *arg)
 {
   LOKI_DEBUG_PRINTLN("3");
   LOKI_DEBUG_PRINT("Tag: ");
   LOKI_DEBUG_PRINT(field->tag);
   LOKI_DEBUG_PRINTLN();
   LokiStream *stream = (LokiStream *)*arg;
-  if (!stream->batchPointer)
+  if (!stream->_batchPointer)
   {
     LOKI_DEBUG_PRINTLN("NO BATCHES")
     return true;
   }
 
-  for (int i = 0; i < stream->batchPointer; i++)
+  for (int i = 0; i < stream->_batchPointer; i++)
   {
     LOKI_DEBUG_PRINT("3-");
     LOKI_DEBUG_PRINTLN(i);
     pb_encode_tag_for_field(ostream, field);
     logproto_EntryAdapter ea = {};
     ea.has_timestamp = true;
-    ea.timestamp.seconds = stream->batch[i]->tsNanos / 1000000000;
-    ea.timestamp.nanos = stream->batch[i]->tsNanos - (ea.timestamp.seconds * 1000000000);
-    ea.line.arg = stream->batch[i];
+    ea.timestamp.seconds = stream->_batch[i]->tsNanos / 1000000000;
+    ea.timestamp.nanos = stream->_batch[i]->tsNanos - (ea.timestamp.seconds * 1000000000);
+    ea.line.arg = stream->_batch[i];
     ea.line.funcs.encode = &callback_encode_line;
     pb_encode_submessage(ostream, logproto_EntryAdapter_fields, &ea);
   }
   return true;
 }
 
-static bool callback_encode_labels(pb_ostream_t *ostream, const pb_field_t *field, void *const *arg)
+bool LokiStreams::callback_encode_labels(pb_ostream_t *ostream, const pb_field_t *field, void *const *arg)
 {
   LokiStream *stream = (LokiStream *)*arg;
   pb_encode_tag_for_field(ostream, field);
@@ -174,9 +165,9 @@ static bool callback_encode_labels(pb_ostream_t *ostream, const pb_field_t *fiel
   return true;
 }
 
-static bool callback_encode_line(pb_ostream_t *ostream, const pb_field_t *field, void *const *arg)
+bool LokiStreams::callback_encode_line(pb_ostream_t *ostream, const pb_field_t *field, void *const *arg)
 {
-  EntrySet *s = (EntrySet *)*arg;
+  LokiStream::EntryClass *s = (LokiStream::EntryClass *)*arg;
   pb_encode_tag_for_field(ostream, field);
   LOKI_DEBUG_PRINT("Tag: ");
   LOKI_DEBUG_PRINT(field->tag);
