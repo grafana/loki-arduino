@@ -1,37 +1,47 @@
 #include "LokiStreams.h"
 
-void LokiStreams::addStream(LokiStream *stream)
-{
-  streams[streamPointer] = stream;
-  streamPointer++;
+LokiStreams::LokiStreams(int numStreams) : _streamCount(numStreams) {
+  _streams = new LokiStream * [numStreams];
+};
+LokiStreams::~LokiStreams() {
+  delete[] _streams;
+}
+
+bool LokiStreams::addStream(LokiStream* stream) {
+  if (_streamPointer >= _streamCount) {
+    errmsg = F("cannot add stream, max number of streams have already been added.");
+    return false;
+  }
+
+  _streams[_streamPointer] = stream;
+  _streamPointer++;
 };
 
-String LokiStreams::toJson(){
-    //FIXME this probably needs to be bigger or dynamic
-    // StaticJsonDocument<384> doc;
-    // JsonObject jstreams = doc["streams"].createNestedObject();
-    // for (int i = 0; i < _streamCount; i++)
-    // {
-    //   JsonObject jstream = jstreams.createNestedObject("stream");
-    //   LokiStream *stream = streams[i];
-    //   for (int j = 0; j < stream->labelPointer; j++)
-    //   {
-    //     jstream[stream->labels[j]->key] = stream->labels[j]->val;
-    //   };
-    //   JsonArray vals = jstreams["values"].createNestedArray();
-    //   for (int j = 0; j < stream->batchPointer; j++)
-    //   {
-    //     vals.add(_uint64ToString(stream->batch[j]->tsNanos));
-    //     vals.add(stream->batch[j]->val);
-    //   }
-    //   String out;
-    //   serializeJson(doc, out);
-    //   return out;
-    // };
+String LokiStreams::toJson() {
+  //FIXME this probably needs to be bigger or dynamic
+  // StaticJsonDocument<384> doc;
+  // JsonObject jstreams = doc["streams"].createNestedObject();
+  // for (int i = 0; i < _streamCount; i++)
+  // {
+  //   JsonObject jstream = jstreams.createNestedObject("stream");
+  //   LokiStream *stream = streams[i];
+  //   for (int j = 0; j < stream->labelPointer; j++)
+  //   {
+  //     jstream[stream->labels[j]->key] = stream->labels[j]->val;
+  //   };
+  //   JsonArray vals = jstreams["values"].createNestedArray();
+  //   for (int j = 0; j < stream->batchPointer; j++)
+  //   {
+  //     vals.add(_uint64ToString(stream->batch[j]->tsNanos));
+  //     vals.add(stream->batch[j]->val);
+  //   }
+  //   String out;
+  //   serializeJson(doc, out);
+  //   return out;
+  // };
 };
 
-bool LokiStreams::toProto(char *output, size_t length)
-{
+bool LokiStreams::toProto(char* output, size_t length) {
 
   // for (int i = 0; i < streamPointer; i++)
   // {
@@ -44,10 +54,10 @@ bool LokiStreams::toProto(char *output, size_t length)
   LOKI_DEBUG_PRINTLN("1");
   uint8_t buffer[256];
   pb_ostream_t os = pb_ostream_from_buffer(buffer, sizeof(buffer));
-  
+
   StreamTuple tp = StreamTuple{
-    strs : streams,
-    strCnt : streamPointer
+    strs: _streams,
+    strCnt : _streamPointer
   };
   logproto_PushRequest p = {};
   p.streams.arg = &tp;
@@ -100,10 +110,10 @@ bool LokiStreams::toProto(char *output, size_t length)
   return true;
 }
 
-bool LokiStreams::callback_encode_push_request(pb_ostream_t *ostream, const pb_field_t *field, void *const *arg)
+bool LokiStreams::callback_encode_push_request(pb_ostream_t* ostream, const pb_field_t* field, void* const* arg)
 {
   LOKI_DEBUG_PRINTLN("2");
-  StreamTuple *tp = (StreamTuple *)*arg;
+  StreamTuple* tp = (StreamTuple*)*arg;
   for (int i = 0; i < tp->strCnt; i++)
   {
     LOKI_DEBUG_PRINT("2-");
@@ -111,7 +121,7 @@ bool LokiStreams::callback_encode_push_request(pb_ostream_t *ostream, const pb_f
     LOKI_DEBUG_PRINT("-");
     LOKI_DEBUG_PRINTLN(i);
     pb_encode_tag_for_field(ostream, field);
-    LokiStream *stream = tp->strs[i];
+    LokiStream* stream = tp->strs[i];
     logproto_StreamAdapter sa = {};
     sa.labels.arg = stream;
     sa.labels.funcs.encode = &callback_encode_labels;
@@ -127,17 +137,17 @@ bool LokiStreams::callback_encode_push_request(pb_ostream_t *ostream, const pb_f
   return true;
 };
 
-bool LokiStreams::callback_encode_entry_adapter(pb_ostream_t *ostream, const pb_field_t *field, void *const *arg)
+bool LokiStreams::callback_encode_entry_adapter(pb_ostream_t* ostream, const pb_field_t* field, void* const* arg)
 {
   LOKI_DEBUG_PRINTLN("3");
   LOKI_DEBUG_PRINT("Tag: ");
   LOKI_DEBUG_PRINT(field->tag);
   LOKI_DEBUG_PRINTLN();
-  LokiStream *stream = (LokiStream *)*arg;
+  LokiStream* stream = (LokiStream*)*arg;
   if (!stream->_batchPointer)
   {
     LOKI_DEBUG_PRINTLN("NO BATCHES")
-    return true;
+      return true;
   }
 
   for (int i = 0; i < stream->_batchPointer; i++)
@@ -156,24 +166,24 @@ bool LokiStreams::callback_encode_entry_adapter(pb_ostream_t *ostream, const pb_
   return true;
 }
 
-bool LokiStreams::callback_encode_labels(pb_ostream_t *ostream, const pb_field_t *field, void *const *arg)
+bool LokiStreams::callback_encode_labels(pb_ostream_t* ostream, const pb_field_t* field, void* const* arg)
 {
-  LokiStream *stream = (LokiStream *)*arg;
+  LokiStream* stream = (LokiStream*)*arg;
   pb_encode_tag_for_field(ostream, field);
-  const char *str = "{foo=\"bar\"}";
-  pb_encode_string(ostream, ((const uint8_t *)str), strlen(str));
+  const char* str = "{foo=\"bar\"}";
+  pb_encode_string(ostream, ((const uint8_t*)str), strlen(str));
   return true;
 }
 
-bool LokiStreams::callback_encode_line(pb_ostream_t *ostream, const pb_field_t *field, void *const *arg)
+bool LokiStreams::callback_encode_line(pb_ostream_t* ostream, const pb_field_t* field, void* const* arg)
 {
-  LokiStream::EntryClass *s = (LokiStream::EntryClass *)*arg;
+  LokiStream::EntryClass* s = (LokiStream::EntryClass*)*arg;
   pb_encode_tag_for_field(ostream, field);
   LOKI_DEBUG_PRINT("Tag: ");
   LOKI_DEBUG_PRINT(field->tag);
   LOKI_DEBUG_PRINTLN();
   LOKI_DEBUG_PRINTLN(s->val);
-  pb_encode_string(ostream, ((const uint8_t *)s->val), strlen(s->val));
+  pb_encode_string(ostream, ((const uint8_t*)s->val), strlen(s->val));
   // LOKI_DEBUG_PRINTLN(s->val)
   return true;
 }
