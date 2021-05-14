@@ -4,6 +4,11 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+// E.Welch added
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Only needed for compression. This preallocates the worst case */
 struct snappy_env {
 	unsigned short *hash_table;
@@ -34,6 +39,8 @@ bool snappy_uncompressed_length(const char *buf, size_t len, size_t *result);
 size_t snappy_max_compressed_length(size_t source_len);
 
 
-
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif

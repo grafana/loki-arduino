@@ -2,9 +2,10 @@
 #include "Util.h"
 
 
-LokiStream::LokiStream(uint8_t batchSize, uint8_t numberLabels, uint8_t maxEntryLength) : _batchSize(batchSize), _numberLabels(numberLabels) {
+LokiStream::LokiStream(uint8_t batchSize, uint8_t numberLabels, uint8_t maxEntryLength, const char* labels) : _batchSize(batchSize), _numberLabels(numberLabels) {
 
     _batch = new LokiStream::EntryClass * [batchSize];
+    _labels = labels;
 
     //Pre-allocate the memory for each entry
     for (int i = 0; i < batchSize; i++) {
@@ -13,7 +14,7 @@ LokiStream::LokiStream(uint8_t batchSize, uint8_t numberLabels, uint8_t maxEntry
     }
 
     // batch = new EntrySet *[batchSize];
-    labels = new LabelSet * [numberLabels];
+    // labels = new LabelSet * [numberLabels];
 };
 
 
@@ -34,10 +35,6 @@ bool LokiStream::addEntry(uint64_t tsNanos, char* val, size_t length) {
         errmsg = F("batch full");
         return false;
     }
-    LOKI_DEBUG_PRINT("length: ")
-        LOKI_DEBUG_PRINTLN(length);
-    LOKI_DEBUG_PRINT("max length: ")
-        LOKI_DEBUG_PRINTLN(_batch[_batchPointer]->maxLength);
     // We malloc'd the value to be maxLength+1 to leave room for a null terminator
     // so we only need to make sure we don't exceed the max length and we still
     // have room for the string terminator
@@ -54,11 +51,7 @@ bool LokiStream::addEntry(uint64_t tsNanos, char* val, size_t length) {
 };
 
 void LokiStream::resetEntries() {
-    // for (int i = 0; i < _batchSize; i++)
-    // {
-    //     batch[i] = (EntrySet *)nullptr;
-    // }
-    // batchPointer = 0;
+    _batchPointer = 0;
 };
 
 LokiStream::EntryClass::EntryClass(uint8_t maxLen) {
