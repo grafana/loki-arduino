@@ -11,13 +11,13 @@
 
 class LokiStreams {
 public:
-    LokiStreams(int numStreams) : _streamCount(numStreams);
+    LokiStreams(int numStreams);
     ~LokiStreams();
-    
+
     bool addStream(LokiStream* stream);
     String toJson();
 
-    bool toProto(char* output, size_t length);
+    uint16_t toSnappyProto(char* output);
 
     const __FlashStringHelper* errmsg;
 

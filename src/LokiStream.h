@@ -17,7 +17,7 @@ struct EntrySet {
 
 class LokiStream {
 public:
-    LokiStream(uint8_t batchSize, uint8_t numberLabels, uint8_t maxEntryLength);
+    LokiStream(uint8_t batchSize, uint8_t numberLabels, uint8_t maxEntryLength, const char* labels);
     ~LokiStream();
 
     void addLabel(String key, String val);
@@ -32,6 +32,7 @@ private:
 
     int _batchSize = 0;
     int _numberLabels = 0;
+    const char* _labels;
 
     LokiStream::EntryClass** _batch = nullptr;
     uint8_t _batchPointer = 0;

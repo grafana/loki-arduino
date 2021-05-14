@@ -31,4 +31,6 @@
 #endif
 
 
+#define LOKI_GET_ERROR(LokiStream) ((LokiStream).errmsg ? (LokiStream).errmsg : F("(no error)"))
+
 #endif

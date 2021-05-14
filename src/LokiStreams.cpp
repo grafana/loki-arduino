@@ -41,18 +41,9 @@ String LokiStreams::toJson() {
   // };
 };
 
-bool LokiStreams::toProto(char* output, size_t length) {
+uint16_t LokiStreams::toSnappyProto(char* output) {
 
-  // for (int i = 0; i < streamPointer; i++)
-  // {
-  //   for (int j = 0; j < streams[i]->batchPointer; j++)
-  //   {
-  //     LOKI_DEBUG_PRINTLN(streams[i]->batch[j]->val);
-  //   }
-  // }
-
-  LOKI_DEBUG_PRINTLN("1");
-  uint8_t buffer[256];
+  uint8_t buffer[512];
   pb_ostream_t os = pb_ostream_from_buffer(buffer, sizeof(buffer));
 
   StreamTuple tp = StreamTuple{
@@ -64,62 +55,42 @@ bool LokiStreams::toProto(char* output, size_t length) {
   p.streams.funcs.encode = &callback_encode_push_request;
   bool status = pb_encode(&os, logproto_PushRequest_fields, &p);
 
-  // logproto_TestMessage t = {};
-  // t.test = 34;
-  // bool status = pb_encode(&os, logproto_TestMessage_fields, &t);
-  LOKI_DEBUG_PRINTLN("4");
-
+  //TODO don't log error here
   if (!status)
   {
     Serial.println("Failed to encode");
     return false;
   }
 
-  LOKI_DEBUG_PRINT("Message Length: ");
-  LOKI_DEBUG_PRINTLN(os.bytes_written);
+  // LOKI_DEBUG_PRINT("Message Length: ");
+  // LOKI_DEBUG_PRINTLN(os.bytes_written);
 
-  LOKI_DEBUG_PRINT("Message: ");
+  // LOKI_DEBUG_PRINT("Message: ");
 
-  for (uint8_t i = 0; i < os.bytes_written; i++)
-  {
-    if (buffer[i] < 0x10)
-    {
-      LOKI_DEBUG_PRINT(0);
-    }
-    LOKI_DEBUG_PRINT(buffer[i], HEX);
-    // LOKI_DEBUG_PRINT(F(":"));
-  }
-  LOKI_DEBUG_PRINTLN();
-
-  // for (int i = 0; i < os.bytes_written; i++)
+  // for (uint8_t i = 0; i < os.bytes_written; i++)
   // {
-  //   LOKI_DEBUG_PRINTF("%02X", buffer[i]);
+  //   if (buffer[i] < 0x10)
+  //   {
+  //     LOKI_DEBUG_PRINT(0);
+  //   }
+  //   LOKI_DEBUG_PRINT(buffer[i], HEX);
+  //   // LOKI_DEBUG_PRINT(F(":"));
   // }
+  // LOKI_DEBUG_PRINTLN();
 
-  // logproto_StreamAdapter stream = logproto_StreamAdapter_init_zero;
-  // stream.labels = "{foo=\"bar\"}";
-
-  // logproto_PushRequest p = logproto_PushRequest_init_zero;
-  // p.streams =
-
-  // snappy_env env;
-  // snappy_init_env(&env);
-  // size_t len = snappy_max_compressed_length(strlen(_out.c_str()));
-  // char *compressed[len];
-  // snappy_compress(&env, _out.c_str(), strlen(_out.c_str()), *compressed, &len);
-  return true;
+  snappy_env env;
+  snappy_init_env(&env);
+  size_t len = snappy_max_compressed_length(os.bytes_written);
+  snappy_compress(&env, (char*)buffer, os.bytes_written, output, &len);
+  snappy_free_env(&env);
+  return len;
 }
 
 bool LokiStreams::callback_encode_push_request(pb_ostream_t* ostream, const pb_field_t* field, void* const* arg)
 {
-  LOKI_DEBUG_PRINTLN("2");
   StreamTuple* tp = (StreamTuple*)*arg;
   for (int i = 0; i < tp->strCnt; i++)
   {
-    LOKI_DEBUG_PRINT("2-");
-    LOKI_DEBUG_PRINT(field->tag);
-    LOKI_DEBUG_PRINT("-");
-    LOKI_DEBUG_PRINTLN(i);
     pb_encode_tag_for_field(ostream, field);
     LokiStream* stream = tp->strs[i];
     logproto_StreamAdapter sa = {};
@@ -129,6 +100,7 @@ bool LokiStreams::callback_encode_push_request(pb_ostream_t* ostream, const pb_f
     // sa.labels = "{foo=\"bar\"}";
     sa.entries.arg = stream;
     sa.entries.funcs.encode = &callback_encode_entry_adapter;
+    //TODO FIXME TO NOT LOG HERE
     if (!pb_encode_submessage(ostream, logproto_StreamAdapter_fields, &sa))
     {
       LOKI_DEBUG_PRINTF("Encoding failed: %s\n", PB_GET_ERROR(ostream));
@@ -139,11 +111,8 @@ bool LokiStreams::callback_encode_push_request(pb_ostream_t* ostream, const pb_f
 
 bool LokiStreams::callback_encode_entry_adapter(pb_ostream_t* ostream, const pb_field_t* field, void* const* arg)
 {
-  LOKI_DEBUG_PRINTLN("3");
-  LOKI_DEBUG_PRINT("Tag: ");
-  LOKI_DEBUG_PRINT(field->tag);
-  LOKI_DEBUG_PRINTLN();
   LokiStream* stream = (LokiStream*)*arg;
+  // FIXME don't log here
   if (!stream->_batchPointer)
   {
     LOKI_DEBUG_PRINTLN("NO BATCHES")
@@ -152,8 +121,6 @@ bool LokiStreams::callback_encode_entry_adapter(pb_ostream_t* ostream, const pb_
 
   for (int i = 0; i < stream->_batchPointer; i++)
   {
-    LOKI_DEBUG_PRINT("3-");
-    LOKI_DEBUG_PRINTLN(i);
     pb_encode_tag_for_field(ostream, field);
     logproto_EntryAdapter ea = {};
     ea.has_timestamp = true;
@@ -170,8 +137,7 @@ bool LokiStreams::callback_encode_labels(pb_ostream_t* ostream, const pb_field_t
 {
   LokiStream* stream = (LokiStream*)*arg;
   pb_encode_tag_for_field(ostream, field);
-  const char* str = "{foo=\"bar\"}";
-  pb_encode_string(ostream, ((const uint8_t*)str), strlen(str));
+  pb_encode_string(ostream, ((const uint8_t*)stream->_labels), strlen(stream->_labels));
   return true;
 }
 
@@ -179,12 +145,7 @@ bool LokiStreams::callback_encode_line(pb_ostream_t* ostream, const pb_field_t* 
 {
   LokiStream::EntryClass* s = (LokiStream::EntryClass*)*arg;
   pb_encode_tag_for_field(ostream, field);
-  LOKI_DEBUG_PRINT("Tag: ");
-  LOKI_DEBUG_PRINT(field->tag);
-  LOKI_DEBUG_PRINTLN();
-  LOKI_DEBUG_PRINTLN(s->val);
   pb_encode_string(ostream, ((const uint8_t*)s->val), strlen(s->val));
-  // LOKI_DEBUG_PRINTLN(s->val)
   return true;
 }
 

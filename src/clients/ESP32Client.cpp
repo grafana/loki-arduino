@@ -57,7 +57,8 @@ bool ESP32Client::_send(char *entry, size_t length)
     if (_wifiClient)
     {
         _httpClient->begin(_url);
-        _httpClient->addHeader("Content-Type", "application/json");
+        _httpClient->addHeader("Content-Type", "application/x-protobuf");
+        _httpClient->addHeader("Content-Encoding", "snappy");
         int httpCode = _httpClient->POST(reinterpret_cast<uint8_t *>(entry), length);
         if (httpCode > 0)
         {
