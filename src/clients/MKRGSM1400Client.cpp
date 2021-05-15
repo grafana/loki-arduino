@@ -2,15 +2,23 @@
 
 #if defined(ARDUINO_SAMD_MKRGSM1400)
 
-MKRGSM1400Client::MKRGSM1400Client(){
+MKRGSM1400Client::MKRGSM1400Client() {
 
 };
 
-bool MKRGSM1400Client::_send(String entry){
+MKRGSM1400Client::~MKRGSM1400Client() {
 
 };
 
-uint64_t MKRGSM1400Client::_getTimeNanos(){
+bool MKRGSM1400Client::_begin() {
+
+};
+
+bool MKRGSM1400Client::_send(char* entry, size_t length) {
+
+};
+
+uint64_t MKRGSM1400Client::_getTimeNanos() {
 
 };
 

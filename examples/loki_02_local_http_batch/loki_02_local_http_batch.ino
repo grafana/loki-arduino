@@ -4,7 +4,7 @@
 
 Loki client;
 LokiStreams streams(3);
-LokiStream stream1(10, 2, 10, "{job=\"esp32\",stream=\"1\"}");
+LokiStream stream1(10, 2, 20, "{job=\"esp32\",stream=\"1\"}");
 LokiStream stream2(10, 3, 10, "{job=\"esp32\",stream=\"2\"}");
 LokiStream stream3(10, 2, 10, "{job=\"esp32\",stream=\"3\"}");
 
@@ -48,8 +48,8 @@ void loop()
     }
     else
     {
-        char str1[10];
-        snprintf(str1, 10, "stream1 %d", loopCounter);
+        char str1[20];
+        snprintf(str1, 20, "uptime %d", millis());
         if (!stream1.addEntry(time, str1, strlen(str1))) {
             Serial.println(stream1.errmsg);
         }

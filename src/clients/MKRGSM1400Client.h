@@ -9,10 +9,11 @@ class MKRGSM1400Client : public LokiClient
 {
 public:
     MKRGSM1400Client();
+    ~MKRGSM1400Client();
 
 protected:
     bool _begin();
-    bool _send(String entry);
+    bool _send(char *entry, size_t length);
     uint64_t _getTimeNanos();
 };
 
