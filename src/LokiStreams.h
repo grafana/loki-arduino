@@ -19,7 +19,7 @@ public:
 
     uint16_t toSnappyProto(char* output);
 
-    const __FlashStringHelper* errmsg;
+    const char* errmsg;
 
 private:
     int _streamCount = 0;

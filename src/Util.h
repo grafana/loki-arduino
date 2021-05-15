@@ -14,19 +14,12 @@
     {                                     \
         LOKI_SERIAL.println(__VA_ARGS__); \
     }
-#define LOKI_DEBUG_PRINTF(...)           \
-    {                                    \
-        LOKI_SERIAL.printf(__VA_ARGS__); \
-    }
 #else
 #define LOKI_DEBUG_PRINT(...) \
     {                         \
     }
 #define LOKI_DEBUG_PRINTLN(...) \
     {                           \
-    }
-#define LOKI_DEBUG_PRINTF(...) \
-    {                          \
     }
 #endif
 

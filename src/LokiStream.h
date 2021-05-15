@@ -24,7 +24,7 @@ public:
     bool addEntry(uint64_t tsNanos, char* val, size_t length);
     void resetEntries();
 
-    const __FlashStringHelper* errmsg;
+    const char* errmsg;
 
 private:
     friend class LokiStreams;

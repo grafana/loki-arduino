@@ -32,14 +32,14 @@ void LokiStream::addLabel(String key, String val) {
 
 bool LokiStream::addEntry(uint64_t tsNanos, char* val, size_t length) {
     if (_batchPointer >= _batchSize) {
-        errmsg = F("batch full");
+        errmsg = "batch full";
         return false;
     }
     // We malloc'd the value to be maxLength+1 to leave room for a null terminator
     // so we only need to make sure we don't exceed the max length and we still
     // have room for the string terminator
     if (length > _batch[_batchPointer]->maxLength) {
-        errmsg = F("entry value exceeds max length provided in constructor");
+        errmsg = "entry value exceeds max length provided in constructor";
         return false;
     }
 

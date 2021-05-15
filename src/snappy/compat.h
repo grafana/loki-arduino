@@ -13,9 +13,10 @@
 #  error "Endianness is undefined"
 #endif
 
+// E.Welch
+// #elif !defined(__WIN32__)
+// #  include <endian.h>
 
-#elif !defined(__WIN32__)
-#  include <endian.h>
 #endif
 
 #include <stdlib.h>

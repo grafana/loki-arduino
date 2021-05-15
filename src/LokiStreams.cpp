@@ -9,7 +9,7 @@ LokiStreams::~LokiStreams() {
 
 bool LokiStreams::addStream(LokiStream* stream) {
   if (_streamPointer >= _streamCount) {
-    errmsg = F("cannot add stream, max number of streams have already been added.");
+    errmsg = "cannot add stream, max number of streams have already been added.";
     return false;
   }
 
@@ -55,15 +55,13 @@ uint16_t LokiStreams::toSnappyProto(char* output) {
   p.streams.funcs.encode = &callback_encode_push_request;
   bool status = pb_encode(&os, logproto_PushRequest_fields, &p);
 
-  //TODO don't log error here
-  if (!status)
-  {
-    Serial.println("Failed to encode");
+  if (!status) {
+    errmsg = PB_GET_ERROR(&os);
     return false;
   }
 
-  // LOKI_DEBUG_PRINT("Message Length: ");
-  // LOKI_DEBUG_PRINTLN(os.bytes_written);
+  LOKI_DEBUG_PRINT("Message Length: ");
+  LOKI_DEBUG_PRINTLN(os.bytes_written);
 
   // LOKI_DEBUG_PRINT("Message: ");
 
@@ -91,19 +89,17 @@ bool LokiStreams::callback_encode_push_request(pb_ostream_t* ostream, const pb_f
   StreamTuple* tp = (StreamTuple*)*arg;
   for (int i = 0; i < tp->strCnt; i++)
   {
-    pb_encode_tag_for_field(ostream, field);
+    if (!pb_encode_tag_for_field(ostream, field)) {
+      return false;
+    }
     LokiStream* stream = tp->strs[i];
     logproto_StreamAdapter sa = {};
     sa.labels.arg = stream;
     sa.labels.funcs.encode = &callback_encode_labels;
-
-    // sa.labels = "{foo=\"bar\"}";
     sa.entries.arg = stream;
     sa.entries.funcs.encode = &callback_encode_entry_adapter;
-    //TODO FIXME TO NOT LOG HERE
-    if (!pb_encode_submessage(ostream, logproto_StreamAdapter_fields, &sa))
-    {
-      LOKI_DEBUG_PRINTF("Encoding failed: %s\n", PB_GET_ERROR(ostream));
+    if (!pb_encode_submessage(ostream, logproto_StreamAdapter_fields, &sa)) {
+      return false;
     }
   }
   return true;
@@ -112,23 +108,24 @@ bool LokiStreams::callback_encode_push_request(pb_ostream_t* ostream, const pb_f
 bool LokiStreams::callback_encode_entry_adapter(pb_ostream_t* ostream, const pb_field_t* field, void* const* arg)
 {
   LokiStream* stream = (LokiStream*)*arg;
-  // FIXME don't log here
-  if (!stream->_batchPointer)
-  {
-    LOKI_DEBUG_PRINTLN("NO BATCHES")
-      return true;
+  if (!stream->_batchPointer) {
+    return true;
   }
 
   for (int i = 0; i < stream->_batchPointer; i++)
   {
-    pb_encode_tag_for_field(ostream, field);
+    if (!pb_encode_tag_for_field(ostream, field)) {
+      return false;
+    }
     logproto_EntryAdapter ea = {};
     ea.has_timestamp = true;
     ea.timestamp.seconds = stream->_batch[i]->tsNanos / 1000000000;
     ea.timestamp.nanos = stream->_batch[i]->tsNanos - (ea.timestamp.seconds * 1000000000);
     ea.line.arg = stream->_batch[i];
     ea.line.funcs.encode = &callback_encode_line;
-    pb_encode_submessage(ostream, logproto_EntryAdapter_fields, &ea);
+    if (!pb_encode_submessage(ostream, logproto_EntryAdapter_fields, &ea)) {
+      return false;
+    }
   }
   return true;
 }
@@ -136,16 +133,24 @@ bool LokiStreams::callback_encode_entry_adapter(pb_ostream_t* ostream, const pb_
 bool LokiStreams::callback_encode_labels(pb_ostream_t* ostream, const pb_field_t* field, void* const* arg)
 {
   LokiStream* stream = (LokiStream*)*arg;
-  pb_encode_tag_for_field(ostream, field);
-  pb_encode_string(ostream, ((const uint8_t*)stream->_labels), strlen(stream->_labels));
+  if (!pb_encode_tag_for_field(ostream, field)) {
+    return false;
+  }
+  if (!pb_encode_string(ostream, ((const uint8_t*)stream->_labels), strlen(stream->_labels))) {
+    return false;
+  }
   return true;
 }
 
 bool LokiStreams::callback_encode_line(pb_ostream_t* ostream, const pb_field_t* field, void* const* arg)
 {
   LokiStream::EntryClass* s = (LokiStream::EntryClass*)*arg;
-  pb_encode_tag_for_field(ostream, field);
-  pb_encode_string(ostream, ((const uint8_t*)s->val), strlen(s->val));
+  if (!pb_encode_tag_for_field(ostream, field)) {
+    return false;
+  }
+  if (!pb_encode_string(ostream, ((const uint8_t*)s->val), strlen(s->val))) {
+    return false;
+  }
   return true;
 }
 
