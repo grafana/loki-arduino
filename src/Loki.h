@@ -15,6 +15,11 @@ typedef ESP32Client Loki;
 #include "clients/MKRGSM1400Client.h"
 typedef MKRGSM1400Client Loki;
 
+#elif defined(ARDUINO_AVR_UNO_WIFI_REV2)
+
+#include "clients/UnoWifi2Client.h"
+typedef UnoWifi2Client Loki;
+
 #endif // Types
 
 #endif // Loki_H
