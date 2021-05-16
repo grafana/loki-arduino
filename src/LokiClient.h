@@ -22,18 +22,25 @@ public:
     void setCert(const char* cert);
     void setWifiSsid(const char* wifiSsid);
     void setWifiPass(const char* wifiPass);
+    void setApn(const char* apn);
+    void setApnLogin(const char* apnLogin);
+    void setApnPass(const char* apnPass);
 
     bool begin();
     bool send(LokiStreams& streams);
     uint64_t getTimeNanos();
 
 protected:
+    //FIXME remove String
     String _url;
     String _user;
     String _pass;
     String _cert;
     String _wifiSsid;
     String _wifiPass;
+    const char* _apn;
+    const char* _apnLogin;
+    const char* _apnPass;
     virtual bool _begin() = 0;
     virtual bool _send(char* entry, size_t length) = 0;
     virtual uint64_t _getTimeNanos() = 0;

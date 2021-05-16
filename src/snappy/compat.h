@@ -80,9 +80,10 @@ typedef unsigned long long u64;
 #define __LITTLE_ENDIAN__ 1
 #endif
 
-#if __LITTLE_ENDIAN__ == 1 && (defined(__LSB_VERSION__) || defined(__WIN32__))
+// E.Welch
+// #if __LITTLE_ENDIAN__ == 1 && (defined(__LSB_VERSION__) || defined(__WIN32__))
 #define htole16(x) (x)
 #define le32toh(x) (x)
-#endif
+// #endif
 
 #define BITS_PER_LONG (__SIZEOF_LONG__ * 8)

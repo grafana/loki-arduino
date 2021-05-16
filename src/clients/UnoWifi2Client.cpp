@@ -1,6 +1,7 @@
+#if defined(ARDUINO_AVR_UNO_WIFI_REV2)
+
 #include "UnoWifi2Client.h"
 
-#if defined(ARDUINO_AVR_UNO_WIFI_REV2)
 
 UnoWifi2Client::UnoWifi2Client() {
 

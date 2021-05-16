@@ -1,5 +1,23 @@
 #include "LokiStreams.h"
 
+#ifdef __arm__
+// should use uinstd.h to define sbrk but Due causes a conflict
+extern "C" char* sbrk(int incr);
+#else  // __ARM__
+extern char* __brkval;
+#endif  // __arm__
+
+int freeMemory() {
+    char top;
+#ifdef __arm__
+    return &top - reinterpret_cast<char*>(sbrk(0));
+#elif defined(CORE_TEENSY) || (ARDUINO > 103 && ARDUINO != 151)
+    return &top - __brkval;
+#else  // __arm__
+    return __brkval ? &top - __brkval : &top - __malloc_heap_start;
+#endif  // __arm__
+}
+
 LokiStreams::LokiStreams(int numStreams) : _streamCount(numStreams) {
   _streams = new LokiStream * [numStreams];
 };
@@ -42,6 +60,8 @@ String LokiStreams::toJson() {
 };
 
 uint16_t LokiStreams::toSnappyProto(char* output) {
+  LOKI_DEBUG_PRINT("Begin To Proto Free Mem:");
+  LOKI_DEBUG_PRINTLN(freeMemory());
 
   uint8_t buffer[512];
   pb_ostream_t os = pb_ostream_from_buffer(buffer, sizeof(buffer));
@@ -59,7 +79,8 @@ uint16_t LokiStreams::toSnappyProto(char* output) {
     errmsg = PB_GET_ERROR(&os);
     return false;
   }
-
+  LOKI_DEBUG_PRINT("After Proto Free Mem:");
+  LOKI_DEBUG_PRINTLN(freeMemory());
   LOKI_DEBUG_PRINT("Message Length: ");
   LOKI_DEBUG_PRINTLN(os.bytes_written);
 
@@ -78,9 +99,17 @@ uint16_t LokiStreams::toSnappyProto(char* output) {
 
   snappy_env env;
   snappy_init_env(&env);
+  LOKI_DEBUG_PRINT("After Init_env Free Mem:");
+  LOKI_DEBUG_PRINTLN(freeMemory());
   size_t len = snappy_max_compressed_length(os.bytes_written);
   snappy_compress(&env, (char*)buffer, os.bytes_written, output, &len);
   snappy_free_env(&env);
+
+  LOKI_DEBUG_PRINT("After Compression Free Mem:");
+  LOKI_DEBUG_PRINTLN(freeMemory());
+
+  LOKI_DEBUG_PRINT("Compressed Length: ");
+  LOKI_DEBUG_PRINTLN(len);
   return len;
 }
 

@@ -674,7 +674,8 @@ EXPORT_SYMBOL(snappy_uncompressed_length);
  * This value could be halfed or quartered to save memory 
  * at the cost of slightly worse compression.
  */
-#define kmax_hash_table_bits 14
+// E.Welch reduced from 14 to 8 to avoid running out of memory on SAMD
+#define kmax_hash_table_bits 8
 #define kmax_hash_table_size (1U << kmax_hash_table_bits)
 
 /*
