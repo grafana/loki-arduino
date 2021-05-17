@@ -15,7 +15,7 @@
 
 
 // #include <GSM_Generic_Main.h>
-
+#define LOGGING
 #include <ArduinoHttpClient.h>
 
 class MKRGSM1400Client : public LokiClient

@@ -1,7 +1,7 @@
 #if defined(ARDUINO_SAMD_MKRGSM1400)
 
 #include "MKRGSM1400Client.h"
-#define LOGGING
+
 
 // #ifdef __arm__
 // // should use uinstd.h to define sbrk but Due causes a conflict
@@ -73,7 +73,7 @@ bool MKRGSM1400Client::_begin() {
         LOKI_DEBUG_PRINTLN("Using SSL Client");
         _gsmClient = new GSMClient();
         const int rand_pin = A5;
-        _arduinoClient = new SSLClient(*_gsmClient, TAs, (size_t)TAs_NUM, rand_pin);
+        _arduinoClient = new SSLClient(*_gsmClient, TAs, (size_t)TAs_NUM, rand_pin, 1, SSLClient::SSL_WARN);
     }
     else {
         _arduinoClient = new GSMClient();
@@ -86,6 +86,7 @@ bool MKRGSM1400Client::_begin() {
     _client = new HttpClient(*_arduinoClient, _url, 443);
     _client->setTimeout(15000);
     _client->setHttpResponseTimeout(15000);
+    _client->connectionKeepAlive();
 };
 
 bool MKRGSM1400Client::_send(char* entry, size_t length) {
@@ -164,39 +165,101 @@ bool MKRGSM1400Client::_send(char* entry, size_t length) {
     // delay(100);
 
 
-    LOKI_DEBUG_PRINTLN("Sending To Loki");
-    _client->beginRequest();
-    LOKI_DEBUG_PRINTLN("1");
-    _client->post("/loki/api/v1/push");
-    LOKI_DEBUG_PRINTLN("2");
-    if (_user && _user.length() > 0 && _pass && _pass.length() > 0)
-    {
-        _client->sendBasicAuth(_user.c_str(), _pass.c_str());
-        LOKI_DEBUG_PRINTLN("3");
-    }
-    _client->sendHeader("Content-Type", "application/x-protobuf");
-    _client->sendHeader("Content-Length", length);
-    LOKI_DEBUG_PRINTLN("4");
-    _client->sendHeader("Content-Encoding", "snappy");
-    LOKI_DEBUG_PRINTLN("5");
-    _client->beginBody();
-    LOKI_DEBUG_PRINTLN("6");
-    _client->print(entry);
-    LOKI_DEBUG_PRINTLN("7");
-    _client->endRequest();
-    LOKI_DEBUG_PRINTLN("8");
-    int statusCode = _client->responseStatusCode();
-    // String body = _client->responseBody();
-    if (statusCode == 204) {
-        LOKI_DEBUG_PRINTLN("Loki Send Succeeded");
+    if (!_arduinoClient->connected()) {
+        Serial.println("connecting");
+        if (_arduinoClient->connect(_url.c_str(), 443)) {
+            Serial.println("connected");
+        }
+        else {
+            Serial.println("error connecting");
+            return false;
+        }
     }
     else {
-        LOKI_DEBUG_PRINT("Loki Send Failed with code: ");
-        LOKI_DEBUG_PRINT(statusCode);
-        LOKI_DEBUG_PRINT("; message: ");
-        LOKI_DEBUG_PRINTLN(_client->responseBody());
-        return false;
+        LOKI_DEBUG_PRINTLN("Already connected");
     }
+
+
+    // Make a HTTP request:
+    _arduinoClient->print("POST ");
+    _arduinoClient->print("/loki/api/v1/push");
+    _arduinoClient->println(" HTTP/1.1");
+    _arduinoClient->print("Host: ");
+    _arduinoClient->println(_url.c_str());
+    // _arduinoClient->println("Connection: keep-alive");
+    _arduinoClient->println("Content-Type: application/x-protobuf");
+    _arduinoClient->println("Content-Encoding: snappy");
+    _arduinoClient->println("Authorization: Basic MjMwNDpleUpySWpvaU1HTmlORFUyWldZNE56VTVOalppT1dZM01UVTVNVFUxWWpsbVpUaGxNelZpT0dFME9Ua3lNU0lzSW00aU9pSnRhM0puYzIweE5EQXdkR1Z6ZENJc0ltbGtJam95TkRJMU5EQjk=");
+    _arduinoClient->println("User-Agent: loki-arduino/0.1.0");
+    _arduinoClient->print("Content-Length: ");
+    _arduinoClient->println(length);
+    _arduinoClient->println();
+    _arduinoClient->println(entry);
+    _arduinoClient->println();
+
+    LOKI_DEBUG_PRINTLN("waiting for response");
+    while (!_arduinoClient->available()) {
+        delay(100);
+    }
+    LOKI_DEBUG_PRINTLN("Response received");
+
+    while (_arduinoClient->available())
+    {
+        char c = _arduinoClient->read();
+        Serial.print(c);
+    }
+
+    delay(1000);
+
+    while (_arduinoClient->available())
+    {
+        char c = _arduinoClient->read();
+        Serial.print(c);
+    }
+
+    // LOKI_DEBUG_PRINTLN("Sending To Loki");
+    // _client->beginRequest();
+    // LOKI_DEBUG_PRINTLN("1");
+    // _client->post("/loki/api/v1/push");
+    // LOKI_DEBUG_PRINTLN("2");
+    // if (_user && _user.length() > 0 && _pass && _pass.length() > 0)
+    // {
+    //     _client->sendBasicAuth(_user.c_str(), _pass.c_str());
+    //     LOKI_DEBUG_PRINTLN("3");
+    // }
+    // _client->sendHeader("Content-Type", "application/x-protobuf");
+    // _client->sendHeader("Content-Length", length);
+    // LOKI_DEBUG_PRINTLN("4");
+    // _client->sendHeader("Content-Encoding", "snappy");
+    // LOKI_DEBUG_PRINTLN("5");
+    // _client->beginBody();
+    // LOKI_DEBUG_PRINTLN("6");
+    // _client->print(entry);
+    // LOKI_DEBUG_PRINTLN("7");
+    // _client->endRequest();
+    // LOKI_DEBUG_PRINTLN("8");
+    // int statusCode = _client->responseStatusCode();
+    // // String body = _client->responseBody();
+    // if (statusCode == 204) {
+    //     LOKI_DEBUG_PRINTLN("Loki Send Succeeded");
+    //     while (_arduinoClient->available())
+    //     {
+    //         char c = _arduinoClient->read();
+    //         Serial.print(c);
+    //     }
+    // }
+    // else {
+    //     LOKI_DEBUG_PRINT("Loki Send Failed with code: ");
+    //     LOKI_DEBUG_PRINT(statusCode);
+    //     // LOKI_DEBUG_PRINT("; message: ");
+    //     // LOKI_DEBUG_PRINTLN(_client->responseBody());
+    //     while (_arduinoClient->available())
+    //     {
+    //         char c = _arduinoClient->read();
+    //         Serial.print(c);
+    //     }
+    //     return false;
+    // }
     return true;
 };
 

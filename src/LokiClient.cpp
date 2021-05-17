@@ -44,7 +44,7 @@ bool LokiClient::begin() {
 };
 
 bool LokiClient::send(LokiStreams& streams) {
-    char buff[512];
+    char buff[512] = {0};
     uint16_t len = streams.toSnappyProto(buff);
     return _send(buff, len);
 };
