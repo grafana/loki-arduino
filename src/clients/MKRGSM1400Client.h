@@ -5,7 +5,7 @@
 
 #include "LokiClient.h"
 #include <MKRGSM.h>
-#include <SSLClient.h>
+#include <ArduinoBearSSL.h>
 #include "certificates.h"
 
 // #define DEBUG_GSM_GENERIC_PORT       LOKI_SERIAL

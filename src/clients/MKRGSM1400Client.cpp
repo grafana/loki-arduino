@@ -19,7 +19,15 @@ MKRGSM1400Client::~MKRGSM1400Client() {
     }
 };
 
+// Keep a global pointer to the instance of the GSM object so we can have a 
+GSM* _globalGSMPointer;
+unsigned long getTime() {
+    return _globalGSMPointer->getTime();
+}
+
 bool MKRGSM1400Client::_begin() {
+    _globalGSMPointer = _gsm;
+
     while (!_connected) {
         LOKI_DEBUG_PRINTLN("Connecting to GSM Network");
         if ((_gsm->begin("") == GSM_READY) && (_gprs->attachGPRS(_apn, _apnLogin, _apnPass) == GPRS_READY)) {
@@ -36,8 +44,8 @@ bool MKRGSM1400Client::_begin() {
     if (_cert && _cert.length() > 0) {
         LOKI_DEBUG_PRINTLN("Using SSL Client");
         _gsmClient = new GSMClient();
-        const int rand_pin = A5;
-        _arduinoClient = new SSLClient(*_gsmClient, TAs, (size_t)TAs_NUM, rand_pin, 1, SSLClient::SSL_WARN);
+        _arduinoClient = new BearSSLClient(*_gsmClient, TAs, (size_t)TAs_NUM);
+        ArduinoBearSSL.onGetTime(getTime);
     }
     else {
         _arduinoClient = new GSMClient();
@@ -124,6 +132,7 @@ uint64_t MKRGSM1400Client::_getTimeNanos() {
     uint64_t time = _gsm->getTime();
     return time * 1000 * 1000 * 1000;
 };
+
 
 
 
