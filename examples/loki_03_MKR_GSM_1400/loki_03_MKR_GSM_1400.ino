@@ -4,7 +4,7 @@
 
 Loki client;
 LokiStreams streams(1);
-LokiStream stream1(10, 2, 20, "{job=\"mkr\",stream=\"1\"}");
+LokiStream stream1(10, 20, "{job=\"mkr\",stream=\"1\"}");
 
 int loopCounter = 0;
 

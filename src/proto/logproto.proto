@@ -4,23 +4,12 @@ package logproto;
 
 import "timestamp.proto";
 
-
-service Pusher {
-  rpc Push(PushRequest) returns (PushResponse) {};
-}
-
-message TestMessage {
-  int32 test = 1;
-}
-
-
 message PushRequest {
   repeated StreamAdapter streams = 1;
 }
 
 message PushResponse {
 }
-
 
 message StreamAdapter {
   string labels = 1;

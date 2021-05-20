@@ -30,22 +30,16 @@ typedef struct _logproto_EntryAdapter {
     pb_callback_t line; 
 } logproto_EntryAdapter;
 
-typedef struct _logproto_TestMessage { 
-    int32_t test; 
-} logproto_TestMessage;
-
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /* Initializer values for message structs */
-#define logproto_TestMessage_init_default        {0}
 #define logproto_PushRequest_init_default        {{{NULL}, NULL}}
 #define logproto_PushResponse_init_default       {0}
 #define logproto_StreamAdapter_init_default      {{{NULL}, NULL}, {{NULL}, NULL}}
 #define logproto_EntryAdapter_init_default       {false, google_protobuf_Timestamp_init_default, {{NULL}, NULL}}
-#define logproto_TestMessage_init_zero           {0}
 #define logproto_PushRequest_init_zero           {{{NULL}, NULL}}
 #define logproto_PushResponse_init_zero          {0}
 #define logproto_StreamAdapter_init_zero         {{{NULL}, NULL}, {{NULL}, NULL}}
@@ -57,14 +51,8 @@ extern "C" {
 #define logproto_StreamAdapter_entries_tag       2
 #define logproto_EntryAdapter_timestamp_tag      1
 #define logproto_EntryAdapter_line_tag           2
-#define logproto_TestMessage_test_tag            1
 
 /* Struct field encoding specification for nanopb */
-#define logproto_TestMessage_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, INT32,    test,              1)
-#define logproto_TestMessage_CALLBACK NULL
-#define logproto_TestMessage_DEFAULT NULL
-
 #define logproto_PushRequest_FIELDLIST(X, a) \
 X(a, CALLBACK, REPEATED, MESSAGE,  streams,           1)
 #define logproto_PushRequest_CALLBACK pb_default_field_callback
@@ -90,14 +78,12 @@ X(a, CALLBACK, SINGULAR, STRING,   line,              2)
 #define logproto_EntryAdapter_DEFAULT NULL
 #define logproto_EntryAdapter_timestamp_MSGTYPE google_protobuf_Timestamp
 
-extern const pb_msgdesc_t logproto_TestMessage_msg;
 extern const pb_msgdesc_t logproto_PushRequest_msg;
 extern const pb_msgdesc_t logproto_PushResponse_msg;
 extern const pb_msgdesc_t logproto_StreamAdapter_msg;
 extern const pb_msgdesc_t logproto_EntryAdapter_msg;
 
 /* Defines for backwards compatibility with code written before nanopb-0.4.0 */
-#define logproto_TestMessage_fields &logproto_TestMessage_msg
 #define logproto_PushRequest_fields &logproto_PushRequest_msg
 #define logproto_PushResponse_fields &logproto_PushResponse_msg
 #define logproto_StreamAdapter_fields &logproto_StreamAdapter_msg
@@ -108,7 +94,6 @@ extern const pb_msgdesc_t logproto_EntryAdapter_msg;
 /* logproto_StreamAdapter_size depends on runtime parameters */
 /* logproto_EntryAdapter_size depends on runtime parameters */
 #define logproto_PushResponse_size               0
-#define logproto_TestMessage_size                11
 
 #ifdef __cplusplus
 } /* extern "C" */

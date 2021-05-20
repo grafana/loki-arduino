@@ -3,24 +3,6 @@
 #include "MKRGSM1400Client.h"
 
 
-// #ifdef __arm__
-// // should use uinstd.h to define sbrk but Due causes a conflict
-// extern "C" char* sbrk(int incr);
-// #else  // __ARM__
-// extern char* __brkval;
-// #endif  // __arm__
-
-// int freeMemory() {
-//     char top;
-// #ifdef __arm__
-//     return &top - reinterpret_cast<char*>(sbrk(0));
-// #elif defined(CORE_TEENSY) || (ARDUINO > 103 && ARDUINO != 151)
-//     return &top - __brkval;
-// #else  // __arm__
-//     return __brkval ? &top - __brkval : &top - __malloc_heap_start;
-// #endif  // __arm__
-// }
-
 MKRGSM1400Client::MKRGSM1400Client() {
     _gprs = new GPRS();
     _gsm = new GSM(false); //true to log AT commands
@@ -51,25 +33,7 @@ bool MKRGSM1400Client::_begin() {
 
     }
 
-    // FIXME Need to either PR the MKRGSM lib (https://github.com/arduino-libraries/MKRGSM/issues/132) or
-    // switch to https://github.com/khoih-prog/GSM_Generic which allows actually setting root certificates
-    // currently we use the provide cert to choose between http and https however we ignore the cert
-    // becasue the library has no way to load it at the moment. It does load a list of default certs
-    // you can see these here: https://github.com/arduino-libraries/MKRGSM/blob/master/src/utility/GSMRootCerts.h
     if (_cert && _cert.length() > 0) {
-        // _arduinoClient = new GSMSSLClient();
-        // ((GSMSSLClient*)_arduinoClient)->setCertificateValidationLevel(0);
-
-        // ((GSMSSLClient*)_arduinoClient)->eraseTrustedRoot();
-        // ((GSMSSLClient*)_arduinoClient)->setUserRoots(SECRET_GSM_ROOT_CERTS, SECRET_GSM_ROOT_SIZE);
-
-        // // ((GSMSSLClient*)_arduinoClient)->setSignedCertificate(SECRET_CERT, "MKRGSM01", sizeof(SECRET_CERT));
-        // // ((GSMSSLClient*)_arduinoClient)->setPrivateKey(SECRET_KEY, "MKRGSMKEY01", sizeof(SECRET_KEY));
-        // // ((GSMSSLClient*)_arduinoClient)->useSignedCertificate("MKRGSM01");
-        // // ((GSMSSLClient*)_arduinoClient)->usePrivateKey("MKRGSMKEY01");
-        // ((GSMSSLClient*)_arduinoClient)->setTrustedRoot("Let_s_Encrypt_Authority_X3");
-
-        // ((GSMSSLClient*)_arduinoClient)->setCertificateValidationLevel(0);
         LOKI_DEBUG_PRINTLN("Using SSL Client");
         _gsmClient = new GSMClient();
         const int rand_pin = A5;
@@ -79,8 +43,6 @@ bool MKRGSM1400Client::_begin() {
         _arduinoClient = new GSMClient();
     }
 
-    // LOKI_DEBUG_PRINT("Free Mem:");
-    // LOKI_DEBUG_PRINTLN(freeMemory());
 
     //FIXME port and url
     _client = new HttpClient(*_arduinoClient, _url, 443);
@@ -91,175 +53,70 @@ bool MKRGSM1400Client::_begin() {
 
 bool MKRGSM1400Client::_send(char* entry, size_t length) {
 
-    //  LOKI_DEBUG_PRINT("Free Mem:");
-    // LOKI_DEBUG_PRINTLN(freeMemory());
-    // LOKI_DEBUG_PRINTLN("connecting...");
+    // TODO Verify modem is connected before attempting connection.
 
-    // _client->beginRequest();
-    // LOKI_DEBUG_PRINTLN("begin");
-    // _client->get("/");
-    // LOKI_DEBUG_PRINTLN("get");
-    // _client->endRequest();
-    // LOKI_DEBUG_PRINTLN("end");
+    // // Make a HTTP request:
+    // _arduinoClient->print("POST ");  // 5
+    // _arduinoClient->print("/loki/api/v1/push"); //17
+    // _arduinoClient->println(" HTTP/1.1"); //9+2
+    // _arduinoClient->print("Host: ");  //6
+    // _arduinoClient->println(_url.c_str()); //logs-prod-us-central1.grafana.net 33+2
+    // // _arduinoClient->println("Connection: keep-alive");
+    // _arduinoClient->println("Content-Type: application/x-protobuf"); //36+2
+    // _arduinoClient->println("Content-Encoding: snappy");  //24+2
+    // _arduinoClient->println("Authorization: Basic ");  //173+2
+    // _arduinoClient->println("User-Agent: loki-arduino/0.1.0"); //30+2
+    // _arduinoClient->print("Content-Length: "); //16
+    // _arduinoClient->println(length); //2+2
+    // _arduinoClient->println(); //+2
+    // _arduinoClient->println(entry); // 54+2
+    // _arduinoClient->println();
+    // Total 423bytes
 
-    // int status = _client->responseStatusCode();
-    // LOKI_DEBUG_PRINTLN("resp");
-    // _client->responseBody();
-    // LOKI_DEBUG_PRINTLN("body");
-    // String response = _client->responseBody();
+    // Response
+    // HTTP/1.1 204 No Content 23+2
+    // 14:29:59.065 -> Date: Mon, 17 May 2021 18:30:00 GMT 35+2
+    // 14:29:59.065 -> Via: 1.1 google 15+2
+    // 14:29:59.065 -> Alt-Svc: clear 14+2
+    // 14:29:59.065 -> +2
+    // Total 97bytes
+    // 2.5hrs 638 packets = 331,760 
+    // ~15s
 
-    // LOKI_DEBUG_PRINT("Status code: ");
-    // LOKI_DEBUG_PRINTLN(status);
-    // LOKI_DEBUG_PRINT("Response: ");
-    // LOKI_DEBUG_PRINTLN(response);
-    // LOKI_DEBUG_PRINT("Free Mem:");
-    // LOKI_DEBUG_PRINTLN(freeMemory());
-
-    // // if you get a connection, report back via serial:
-
-    // if (_arduinoClient->connect(_url.c_str(), 443)) {
-    //     Serial.println("connected");
-    //     // Make a HTTP request:
-    //     _arduinoClient->print("GET ");
-    //     _arduinoClient->print("/");
-    //     _arduinoClient->println(" HTTP/1->1");
-    //     _arduinoClient->print("Host: ");
-    //     _arduinoClient->println(_url.c_str());
-    //     _arduinoClient->println("Connection: close");
-    //     _arduinoClient->println();
-    // }
-    // else {
-    //     // if you didn't get a connection to the server:
-    //     MODEM.send("AT+USOER");
-    //     Serial.println("connection failed");
-    // }
-
-    // while (_arduinoClient->available())
-    // {
-    //     char c = _arduinoClient->read();
-    //     Serial.print(c);
-    // }
-
-    // // if the server's disconnected, stop the client:
-    // if (!_arduinoClient->available() && !_arduinoClient->connected())
-    // {
-    //     Serial.println();
-    //     Serial.println("disconnecting.");
-    //     _arduinoClient->stop();
-
-    // }
-
-    // _client->get("/");
-
-    // // read the status code and body of the response
-    // int statusCode = _client->responseStatusCode();
-    // String response = _client->responseBody();
-
-    // Serial.print("Status code: ");
-    // Serial.println(statusCode);
-    // Serial.print("Response: ");
-    // Serial.println(response);
-    // LOKI_DEBUG_PRINTLN("Disable Cert Validation");  
-    // ((GSMSSLClient*)_arduinoClient)->setCertificateValidationLevel(0);
-    // MODEM.sendf("AT+USECPRF=0,0,%d",0);
-    // delay(100);
-
-
-    if (!_arduinoClient->connected()) {
-        Serial.println("connecting");
-        if (_arduinoClient->connect(_url.c_str(), 443)) {
-            Serial.println("connected");
-        }
-        else {
-            Serial.println("error connecting");
-            return false;
+    LOKI_DEBUG_PRINTLN("Sending To Loki");
+    _client->beginRequest();
+    _client->post("/loki/api/v1/push");
+    if (_user && _user.length() > 0 && _pass && _pass.length() > 0) {
+        _client->sendBasicAuth(_user.c_str(), _pass.c_str());
+    }
+    _client->sendHeader("Content-Type", "application/x-protobuf");
+    _client->sendHeader("Content-Length", length);
+    _client->sendHeader("Content-Encoding", "snappy");
+    _client->sendHeader("User-Agent: loki-arduino/0.1.0");
+    _client->beginBody();
+    _client->print(entry);
+    _client->endRequest();
+    LOKI_DEBUG_PRINTLN("Sent, waiting for response");
+    int statusCode = _client->responseStatusCode();
+    if (statusCode == 204) {
+        LOKI_DEBUG_PRINTLN("Loki Send Succeeded");
+        // We don't use the _client->responseBody() method both because it allocates a string
+        // and also because it doesn't understand a 204 response code not having a content-length
+        // header and will wait until a timeout for additional bytes.
+        while (_arduinoClient->available()) {
+            char c = _arduinoClient->read();
+            LOKI_DEBUG_PRINT(c);
         }
     }
     else {
-        LOKI_DEBUG_PRINTLN("Already connected");
+        LOKI_DEBUG_PRINT("Loki Send Failed with code: ");
+        LOKI_DEBUG_PRINT(statusCode);
+        while (_arduinoClient->available()) {
+            char c = _arduinoClient->read();
+            LOKI_DEBUG_PRINT(c);
+        }
+        return false;
     }
-
-
-    // Make a HTTP request:
-    _arduinoClient->print("POST ");
-    _arduinoClient->print("/loki/api/v1/push");
-    _arduinoClient->println(" HTTP/1.1");
-    _arduinoClient->print("Host: ");
-    _arduinoClient->println(_url.c_str());
-    // _arduinoClient->println("Connection: keep-alive");
-    _arduinoClient->println("Content-Type: application/x-protobuf");
-    _arduinoClient->println("Content-Encoding: snappy");
-    _arduinoClient->println("Authorization: Basic MjMwNDpleUpySWpvaU1HTmlORFUyWldZNE56VTVOalppT1dZM01UVTVNVFUxWWpsbVpUaGxNelZpT0dFME9Ua3lNU0lzSW00aU9pSnRhM0puYzIweE5EQXdkR1Z6ZENJc0ltbGtJam95TkRJMU5EQjk=");
-    _arduinoClient->println("User-Agent: loki-arduino/0.1.0");
-    _arduinoClient->print("Content-Length: ");
-    _arduinoClient->println(length);
-    _arduinoClient->println();
-    _arduinoClient->println(entry);
-    _arduinoClient->println();
-
-    LOKI_DEBUG_PRINTLN("waiting for response");
-    while (!_arduinoClient->available()) {
-        delay(100);
-    }
-    LOKI_DEBUG_PRINTLN("Response received");
-
-    while (_arduinoClient->available())
-    {
-        char c = _arduinoClient->read();
-        Serial.print(c);
-    }
-
-    delay(1000);
-
-    while (_arduinoClient->available())
-    {
-        char c = _arduinoClient->read();
-        Serial.print(c);
-    }
-
-    // LOKI_DEBUG_PRINTLN("Sending To Loki");
-    // _client->beginRequest();
-    // LOKI_DEBUG_PRINTLN("1");
-    // _client->post("/loki/api/v1/push");
-    // LOKI_DEBUG_PRINTLN("2");
-    // if (_user && _user.length() > 0 && _pass && _pass.length() > 0)
-    // {
-    //     _client->sendBasicAuth(_user.c_str(), _pass.c_str());
-    //     LOKI_DEBUG_PRINTLN("3");
-    // }
-    // _client->sendHeader("Content-Type", "application/x-protobuf");
-    // _client->sendHeader("Content-Length", length);
-    // LOKI_DEBUG_PRINTLN("4");
-    // _client->sendHeader("Content-Encoding", "snappy");
-    // LOKI_DEBUG_PRINTLN("5");
-    // _client->beginBody();
-    // LOKI_DEBUG_PRINTLN("6");
-    // _client->print(entry);
-    // LOKI_DEBUG_PRINTLN("7");
-    // _client->endRequest();
-    // LOKI_DEBUG_PRINTLN("8");
-    // int statusCode = _client->responseStatusCode();
-    // // String body = _client->responseBody();
-    // if (statusCode == 204) {
-    //     LOKI_DEBUG_PRINTLN("Loki Send Succeeded");
-    //     while (_arduinoClient->available())
-    //     {
-    //         char c = _arduinoClient->read();
-    //         Serial.print(c);
-    //     }
-    // }
-    // else {
-    //     LOKI_DEBUG_PRINT("Loki Send Failed with code: ");
-    //     LOKI_DEBUG_PRINT(statusCode);
-    //     // LOKI_DEBUG_PRINT("; message: ");
-    //     // LOKI_DEBUG_PRINTLN(_client->responseBody());
-    //     while (_arduinoClient->available())
-    //     {
-    //         char c = _arduinoClient->read();
-    //         Serial.print(c);
-    //     }
-    //     return false;
-    // }
     return true;
 };
 

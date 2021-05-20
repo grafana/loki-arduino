@@ -6,9 +6,6 @@
 #error Regenerate this file with the current version of nanopb generator.
 #endif
 
-PB_BIND(logproto_TestMessage, logproto_TestMessage, AUTO)
-
-
 PB_BIND(logproto_PushRequest, logproto_PushRequest, AUTO)
 
 

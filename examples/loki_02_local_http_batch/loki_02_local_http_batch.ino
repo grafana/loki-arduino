@@ -4,9 +4,9 @@
 
 Loki client;
 LokiStreams streams(3);
-LokiStream stream1(10, 2, 20, "{job=\"esp32\",stream=\"1\"}");
-LokiStream stream2(10, 3, 10, "{job=\"esp32\",stream=\"2\"}");
-LokiStream stream3(10, 2, 10, "{job=\"esp32\",stream=\"3\"}");
+LokiStream stream1(10, 20, "{job=\"esp32\",stream=\"1\"}");
+LokiStream stream2(10, 10, "{job=\"esp32\",stream=\"2\"}");
+LokiStream stream3(10, 10, "{job=\"esp32\",stream=\"3\"}");
 
 int loopCounter = 0;
 

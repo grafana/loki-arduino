@@ -2,7 +2,7 @@
 #include "Util.h"
 
 
-LokiStream::LokiStream(uint8_t batchSize, uint8_t numberLabels, uint8_t maxEntryLength, const char* labels) : _batchSize(batchSize), _numberLabels(numberLabels) {
+LokiStream::LokiStream(uint8_t batchSize, uint8_t maxEntryLength, const char* labels) : _batchSize(batchSize), _maxEntryLength(maxEntryLength) {
 
     _batch = new LokiStream::EntryClass * [batchSize];
     _labels = labels;

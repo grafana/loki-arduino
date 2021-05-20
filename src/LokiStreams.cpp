@@ -8,13 +8,13 @@ extern char* __brkval;
 #endif  // __arm__
 
 int freeMemory() {
-    char top;
+  char top;
 #ifdef __arm__
-    return &top - reinterpret_cast<char*>(sbrk(0));
+  return &top - reinterpret_cast<char*>(sbrk(0));
 #elif defined(CORE_TEENSY) || (ARDUINO > 103 && ARDUINO != 151)
-    return &top - __brkval;
+  return &top - __brkval;
 #else  // __arm__
-    return __brkval ? &top - __brkval : &top - __malloc_heap_start;
+  return __brkval ? &top - __brkval : &top - __malloc_heap_start;
 #endif  // __arm__
 }
 
@@ -58,6 +58,50 @@ String LokiStreams::toJson() {
   //   return out;
   // };
 };
+
+uint16_t LokiStreams::estimateProtoBuffSize() {
+  /*
+  ❯ echo 0A270A0B7B666F6F3D22626172227D12180A0C08F9A0F4840610D0C9F9E402120873747265616D31200A270A0B7B666F6F3D22626172227D12180A0C08F9A0F4840610D0C9F9E402120873747265616D32200A270A0B7B666F6F3D22626172227D12180A0C08F9A0F4840610D0C9F9E402120873747265616D3320 | xxd -r -p | protoc --decode_raw
+    1 {
+      1: "{foo=\"bar\"}"
+      2 {
+        1 {
+          1: 1620906105
+          2: 748578000
+        }
+        2: "stream1 "
+      }
+    }
+    1 {
+      1: "{foo=\"bar\"}"
+      2 {
+        1 {
+          1: 1620906105
+          2: 748578000
+        }
+        2: "stream2 "
+      }
+    }
+    1 {
+      1: "{foo=\"bar\"}"
+      2 {
+        1 {
+          1: 1620906105
+          2: 748578000
+        }
+        2: "stream3 "
+      }
+    }
+  */
+
+  // for (int i=0; i<_streamCount; i++) {
+  //   uint16_t streamEntryLength = _streams[i]->_batchSize*_streams[i]->_maxEntryLength;
+  //   streamEntryLength + 
+  // }
+
+
+
+}
 
 uint16_t LokiStreams::toSnappyProto(char* output) {
   LOKI_DEBUG_PRINT("Begin To Proto Free Mem:");

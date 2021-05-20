@@ -17,6 +17,7 @@ public:
     bool addStream(LokiStream* stream);
     String toJson();
 
+    uint16_t estimateProtoBuffSize();
     uint16_t toSnappyProto(char* output);
 
     const char* errmsg;
