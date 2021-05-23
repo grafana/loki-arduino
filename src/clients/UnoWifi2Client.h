@@ -4,6 +4,7 @@
 #if defined(ARDUINO_AVR_UNO_WIFI_REV2)
 
 #include "LokiClient.h"
+#include <ArduinoBearSSL.h>
 
 class UnoWifi2Client : public LokiClient
 {

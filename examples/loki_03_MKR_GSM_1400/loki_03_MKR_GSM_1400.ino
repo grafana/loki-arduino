@@ -1,6 +1,9 @@
 
+#include <bearssl_x509.h>
+#include "certificates.h"
+#include "config_test.h"
 #include <Loki.h>
-#include "config.h"
+
 
 Loki client;
 LokiStreams streams(1);
@@ -16,22 +19,27 @@ void setup()
         delay(10); // will pause Zero, Leonardo, etc until serial console opens
 
     Serial.println("Running Setup");
-    // delay(5000);
-    // Loki client;
-    client.setUrl("logs-prod-us-central1.grafana.net");
-    client.setCert("dummy_val");
+ 
+    client.setUrl(GC_URL);
+    client.setPort(GC_PORT);
+    client.setPath(GC_PATH);
+    client.setUseTls(true);
+    client.setCerts(TAs, TAs_NUM);
     client.setApn(APN);
     client.setApnLogin(APN_LOGIN);
     client.setApnPass(APN_PASS);
     client.setUser(GC_USER);
     client.setPass(GC_PASS);
+    client.setDebug(Serial);
     client.begin();
     streams.addStream(&stream1);
+    
+    streams.setDebug(Serial);
 
 
     // stream2.addEntry(time, "stream2 ");
     // stream3.addEntry(time, "stream3 ");
-    Serial.println("Running Setup5");
+    
 }
 
 void loop()
@@ -56,8 +64,6 @@ void loop()
         }
         loopCounter++;
     }
-
-    // Serial.println("Running...");
     
     delay(5000);
 }

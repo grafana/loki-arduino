@@ -1,5 +1,4 @@
 #include "LokiStream.h"
-#include "Util.h"
 
 
 LokiStream::LokiStream(uint8_t batchSize, uint8_t maxEntryLength, const char* labels) : _batchSize(batchSize), _maxEntryLength(maxEntryLength) {
@@ -13,22 +12,14 @@ LokiStream::LokiStream(uint8_t batchSize, uint8_t maxEntryLength, const char* la
         _batch[i] = b;
     }
 
-    // batch = new EntrySet *[batchSize];
-    // labels = new LabelSet * [numberLabels];
 };
-
 
 LokiStream::~LokiStream() {
     for (int i = 0; i < _batchSize; i++) {
         delete _batch[i];
     }
     delete[] _batch;
-    // delete[] _labels;
 }
-
-void LokiStream::addLabel(String key, String val) {
-
-};
 
 bool LokiStream::addEntry(uint64_t tsNanos, char* val, size_t length) {
     if (_batchPointer >= _batchSize) {

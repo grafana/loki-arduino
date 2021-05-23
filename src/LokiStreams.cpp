@@ -1,28 +1,14 @@
 #include "LokiStreams.h"
 
-#ifdef __arm__
-// should use uinstd.h to define sbrk but Due causes a conflict
-extern "C" char* sbrk(int incr);
-#else  // __ARM__
-extern char* __brkval;
-#endif  // __arm__
-
-int freeMemory() {
-  char top;
-#ifdef __arm__
-  return &top - reinterpret_cast<char*>(sbrk(0));
-#elif defined(CORE_TEENSY) || (ARDUINO > 103 && ARDUINO != 151)
-  return &top - __brkval;
-#else  // __arm__
-  return __brkval ? &top - __brkval : &top - __malloc_heap_start;
-#endif  // __arm__
-}
-
-LokiStreams::LokiStreams(int numStreams) : _streamCount(numStreams) {
+LokiStreams::LokiStreams(uint16_t numStreams, uint32_t bufferSize) : _streamCount(numStreams), _bufferSize(bufferSize) {
   _streams = new LokiStream * [numStreams];
 };
 LokiStreams::~LokiStreams() {
   delete[] _streams;
+}
+
+void LokiStreams::setDebug(Stream& stream) {
+  _debug = &stream;
 }
 
 bool LokiStreams::addStream(LokiStream* stream) {
@@ -35,79 +21,15 @@ bool LokiStreams::addStream(LokiStream* stream) {
   _streamPointer++;
 };
 
-String LokiStreams::toJson() {
-  //FIXME this probably needs to be bigger or dynamic
-  // StaticJsonDocument<384> doc;
-  // JsonObject jstreams = doc["streams"].createNestedObject();
-  // for (int i = 0; i < _streamCount; i++)
-  // {
-  //   JsonObject jstream = jstreams.createNestedObject("stream");
-  //   LokiStream *stream = streams[i];
-  //   for (int j = 0; j < stream->labelPointer; j++)
-  //   {
-  //     jstream[stream->labels[j]->key] = stream->labels[j]->val;
-  //   };
-  //   JsonArray vals = jstreams["values"].createNestedArray();
-  //   for (int j = 0; j < stream->batchPointer; j++)
-  //   {
-  //     vals.add(_uint64ToString(stream->batch[j]->tsNanos));
-  //     vals.add(stream->batch[j]->val);
-  //   }
-  //   String out;
-  //   serializeJson(doc, out);
-  //   return out;
-  // };
-};
-
-uint16_t LokiStreams::estimateProtoBuffSize() {
-  /*
-  ❯ echo 0A270A0B7B666F6F3D22626172227D12180A0C08F9A0F4840610D0C9F9E402120873747265616D31200A270A0B7B666F6F3D22626172227D12180A0C08F9A0F4840610D0C9F9E402120873747265616D32200A270A0B7B666F6F3D22626172227D12180A0C08F9A0F4840610D0C9F9E402120873747265616D3320 | xxd -r -p | protoc --decode_raw
-    1 {
-      1: "{foo=\"bar\"}"
-      2 {
-        1 {
-          1: 1620906105
-          2: 748578000
-        }
-        2: "stream1 "
-      }
-    }
-    1 {
-      1: "{foo=\"bar\"}"
-      2 {
-        1 {
-          1: 1620906105
-          2: 748578000
-        }
-        2: "stream2 "
-      }
-    }
-    1 {
-      1: "{foo=\"bar\"}"
-      2 {
-        1 {
-          1: 1620906105
-          2: 748578000
-        }
-        2: "stream3 "
-      }
-    }
-  */
-
-  // for (int i=0; i<_streamCount; i++) {
-  //   uint16_t streamEntryLength = _streams[i]->_batchSize*_streams[i]->_maxEntryLength;
-  //   streamEntryLength + 
-  // }
-
-
-
+uint32_t LokiStreams::getBufferSize() {
+  return _bufferSize;
 }
 
-uint16_t LokiStreams::toSnappyProto(char* output) {
-  LOKI_DEBUG_PRINT("Begin To Proto Free Mem:");
-  LOKI_DEBUG_PRINTLN(freeMemory());
+int16_t LokiStreams::toSnappyProto(uint8_t* output) {
+  DEBUG_PRINT("Begin serialization: ");
+  PRINT_HEAP();
 
-  uint8_t buffer[512];
+  uint8_t buffer[_bufferSize];
   pb_ostream_t os = pb_ostream_from_buffer(buffer, sizeof(buffer));
 
   StreamTuple tp = StreamTuple{
@@ -117,43 +39,51 @@ uint16_t LokiStreams::toSnappyProto(char* output) {
   logproto_PushRequest p = {};
   p.streams.arg = &tp;
   p.streams.funcs.encode = &callback_encode_push_request;
-  bool status = pb_encode(&os, logproto_PushRequest_fields, &p);
-
-  if (!status) {
-    errmsg = PB_GET_ERROR(&os);
-    return false;
+  if (!pb_encode(&os, logproto_PushRequest_fields, &p)) {
+    DEBUG_PRINT("Error from proto encode: ");
+    DEBUG_PRINTLN(PB_GET_ERROR(&os));
+    errmsg = "Error creating protobuf, enable debug logging to see more details";
+    return -1;
   }
-  LOKI_DEBUG_PRINT("After Proto Free Mem:");
-  LOKI_DEBUG_PRINTLN(freeMemory());
-  LOKI_DEBUG_PRINT("Message Length: ");
-  LOKI_DEBUG_PRINTLN(os.bytes_written);
 
-  // LOKI_DEBUG_PRINT("Message: ");
+  DEBUG_PRINT("Bytes used for serialization: ");
+  DEBUG_PRINTLN(os.bytes_written);
+
+  DEBUG_PRINT("After serialization: ");
+  PRINT_HEAP();
 
   // for (uint8_t i = 0; i < os.bytes_written; i++)
   // {
   //   if (buffer[i] < 0x10)
   //   {
-  //     LOKI_DEBUG_PRINT(0);
+  //     DEBUG_PRINT(0);
   //   }
-  //   LOKI_DEBUG_PRINT(buffer[i], HEX);
-  //   // LOKI_DEBUG_PRINT(F(":"));
+  //   DEBUG_PRINT(buffer[i], HEX);
   // }
-  // LOKI_DEBUG_PRINTLN();
+  // DEBUG_PRINTLN();
 
   snappy_env env;
   snappy_init_env(&env);
-  LOKI_DEBUG_PRINT("After Init_env Free Mem:");
-  LOKI_DEBUG_PRINTLN(freeMemory());
+  DEBUG_PRINT("After Compression Init: ");
+  PRINT_HEAP();
+
   size_t len = snappy_max_compressed_length(os.bytes_written);
-  snappy_compress(&env, (char*)buffer, os.bytes_written, output, &len);
+  DEBUG_PRINT("Required buffer size for compression: ");
+  DEBUG_PRINTLN(len);
+
+  if (len > _bufferSize) {
+    errmsg = "WriteRequest bufferSize is too small and will be overun during compression! Enable debug logging to see required buffer size";
+    return -1;
+  }
+
+  snappy_compress(&env, (char*)buffer, os.bytes_written, (char*)output, &len);
   snappy_free_env(&env);
 
-  LOKI_DEBUG_PRINT("After Compression Free Mem:");
-  LOKI_DEBUG_PRINTLN(freeMemory());
+  DEBUG_PRINT("Compressed Len: ");
+  DEBUG_PRINTLN(len);
 
-  LOKI_DEBUG_PRINT("Compressed Length: ");
-  LOKI_DEBUG_PRINTLN(len);
+  DEBUG_PRINT("After Compression: ");
+  PRINT_HEAP();
   return len;
 }
 
@@ -225,23 +155,4 @@ bool LokiStreams::callback_encode_line(pb_ostream_t* ostream, const pb_field_t* 
     return false;
   }
   return true;
-}
-
-String _uint64ToString(uint64_t input)
-{
-  String result = "";
-  uint8_t base = 10;
-
-  do
-  {
-    char c = input % base;
-    input /= base;
-
-    if (c < 10)
-      c += '0';
-    else
-      c += 'A' - 10;
-    result = c + result;
-  } while (input);
-  return result;
 }

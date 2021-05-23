@@ -1,7 +1,7 @@
 #if defined(ESP32)
 #include "ESP32Client.h"
 
-static const char UserAgent[] PROGMEM = "loki-arduino/" LOKI_CLIENT_VERSION " (ESP32)";
+static const char UserAgent[] PROGMEM = "loki-arduino/" CLIENT_VERSION " (ESP32)";
 
 ESP32Client::ESP32Client()
 {
@@ -29,10 +29,10 @@ bool ESP32Client::_begin()
         _httpClient->setAuthorization(_user.c_str(), _pass.c_str());
     }
 
-    LOKI_SERIAL.println("Connecting wifi");
+    SERIAL.println("Connecting wifi");
     _connect();
 
-    LOKI_DEBUG_PRINT("Setting up sntp and setting time from pool.ntp.org");
+    DEBUG_PRINT("Setting up sntp and setting time from pool.ntp.org");
     sntp_setoperatingmode(SNTP_OPMODE_POLL);
     sntp_setservername(0, "172.20.31.1");
     sntp_init();
@@ -40,10 +40,10 @@ bool ESP32Client::_begin()
     while (sntp_get_sync_status() == SNTP_SYNC_STATUS_RESET)
     {
         delay(1000);
-        LOKI_DEBUG_PRINT(".");
+        DEBUG_PRINT(".");
     }
 
-    LOKI_DEBUG_PRINTF("Time set succesfully, current time in nanos: %d\n", _getTimeNanos())
+    DEBUG_PRINTF("Time set succesfully, current time in nanos: %d\n", _getTimeNanos())
 }
 
 bool ESP32Client::_send(char *entry, size_t length)
@@ -62,43 +62,43 @@ bool ESP32Client::_send(char *entry, size_t length)
         int httpCode = _httpClient->POST(reinterpret_cast<uint8_t *>(entry), length);
         if (httpCode > 0)
         {
-            LOKI_DEBUG_PRINTF("Loki POST...  Code: %d ", httpCode);
+            DEBUG_PRINTF("Loki POST...  Code: %d ", httpCode);
             if (httpCode >= 400)
             {
-                _httpClient->writeToStream(&LOKI_SERIAL);
+                _httpClient->writeToStream(&SERIAL);
             }
-            LOKI_DEBUG_PRINTLN();
+            DEBUG_PRINTLN();
         }
         else
         {
-            LOKI_DEBUG_PRINTF("Loki POST... Error: %s\n", _httpClient->errorToString(httpCode).c_str());
+            DEBUG_PRINTF("Loki POST... Error: %s\n", _httpClient->errorToString(httpCode).c_str());
         }
 
         _httpClient->end();
     }
     else
     {
-        LOKI_DEBUG_PRINTLN("Uninitialized wifi client, did you call begin()?");
+        DEBUG_PRINTLN("Uninitialized wifi client, did you call begin()?");
     }
 };
 
 void ESP32Client::_connect()
 {
-    LOKI_DEBUG_PRINT("Connecting to '");
-    LOKI_DEBUG_PRINT(_wifiSsid);
-    LOKI_DEBUG_PRINT("' ...");
+    DEBUG_PRINT("Connecting to '");
+    DEBUG_PRINT(_wifiSsid);
+    DEBUG_PRINT("' ...");
 
     WiFi.mode(WIFI_STA);
     WiFi.begin(_wifiSsid.c_str(), _wifiPass.c_str());
     while (WiFi.status() != WL_CONNECTED)
     {
         delay(500);
-        LOKI_DEBUG_PRINT(".");
+        DEBUG_PRINT(".");
     }
-    LOKI_DEBUG_PRINTLN("connected");
+    DEBUG_PRINTLN("connected");
 
-    LOKI_DEBUG_PRINT("IP address: ");
-    LOKI_DEBUG_PRINTLN(WiFi.localIP());
+    DEBUG_PRINT("IP address: ");
+    DEBUG_PRINTLN(WiFi.localIP());
 }
 
 uint64_t ESP32Client::_getTimeNanos()

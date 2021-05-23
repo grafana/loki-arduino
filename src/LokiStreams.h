@@ -7,24 +7,28 @@
 #include "proto/pb.h"
 #include "proto/pb_encode.h"
 #include "proto/logproto.pb.h"
-#include "Util.h"
+#include "LokiDebug.h"
 
 class LokiStreams {
 public:
-    LokiStreams(int numStreams);
+    LokiStreams(uint16_t numStreams, uint32_t bufferSize = 512);
     ~LokiStreams();
 
-    bool addStream(LokiStream* stream);
-    String toJson();
+    void setDebug(Stream& stream);
 
-    uint16_t estimateProtoBuffSize();
-    uint16_t toSnappyProto(char* output);
+    bool addStream(LokiStream* stream);
+
+    int16_t toSnappyProto(uint8_t* output);
+
+    uint32_t getBufferSize();
 
     const char* errmsg;
 
 private:
-    int _streamCount = 0;
-    String _uint64ToString(uint64_t input);
+    uint16_t _streamCount = 0;
+    uint32_t _bufferSize = 0;
+
+    Stream* _debug = nullptr;
 
     LokiStream** _streams = nullptr;
     uint8_t _streamPointer = 0;
