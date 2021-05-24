@@ -13,10 +13,12 @@ MKRGSM1400Client::~MKRGSM1400Client() {
     delete _gsm;
     if (_gsmClient) {
         delete _gsmClient;
+        // Because a client can be passed in only delete it if we also have a _gsmClient
+        if (_client) {
+            delete _client;
+        }
     }
-    if (_client) {
-        delete _client;
-    }
+    
     if (_httpClient) {
         delete _httpClient;
     }

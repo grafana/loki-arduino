@@ -6,7 +6,9 @@
 
 
 Loki client;
-LokiStreams streams(1);
+// Create a streams object for holding streams.
+LokiStreams streams(2);
+// Define the stream with a batch size of 10, and a max line length of 20 chars and the label set for the stream.
 LokiStream stream1(10, 20, "{job=\"mkr\",stream=\"1\"}");
 
 int loopCounter = 0;
