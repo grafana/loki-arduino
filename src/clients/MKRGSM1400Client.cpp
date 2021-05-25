@@ -18,10 +18,6 @@ MKRGSM1400Client::~MKRGSM1400Client() {
             delete _client;
         }
     }
-
-    if (_httpClient) {
-        delete _httpClient;
-    }
 };
 
 bool MKRGSM1400Client::_begin() {
@@ -49,7 +45,7 @@ bool MKRGSM1400Client::_begin() {
         _client = new GSMClient();
     }
 
-    _httpClient = new HttpClient(*_client, _url, _port);
+    return true;
 
 };
 

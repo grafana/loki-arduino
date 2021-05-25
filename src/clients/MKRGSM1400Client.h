@@ -6,7 +6,6 @@
 #include "LokiClient.h"
 #include <MKRGSM.h>
 #include <SSLClient.h>
-#include <ArduinoHttpClient.h>
 
 class MKRGSM1400Client : public LokiClient
 {

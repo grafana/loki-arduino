@@ -31,8 +31,6 @@ bool ESP32Client::_begin()
         _client = _wifiClient;
     }
 
-    _httpClient = new HttpClient(*_client, _url, _port);
-
     DEBUG_PRINTLN("Connecting Wifi");
 
     _connect();
@@ -50,6 +48,8 @@ bool ESP32Client::_begin()
     }
 
     DEBUG_PRINTLN("Time set succesfully");
+
+    return true;
 }
 
 

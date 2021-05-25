@@ -5,6 +5,9 @@ LokiClient::LokiClient() {
 };
 
 LokiClient::~LokiClient() {
+    if (_httpClient) {
+        delete _httpClient;
+    }
 
 };
 
@@ -68,6 +71,7 @@ bool LokiClient::begin() {
         errmsg = "failed to init the client, enable debug logging for more info";
         return false;
     }
+    _httpClient = new HttpClient(*_client, _url, _port);
     _httpClient->setTimeout(15000);
     _httpClient->setHttpResponseTimeout(15000);
     _httpClient->connectionKeepAlive();

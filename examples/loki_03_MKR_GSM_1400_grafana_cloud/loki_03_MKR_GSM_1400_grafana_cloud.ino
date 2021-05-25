@@ -42,9 +42,12 @@ void setup() {
     client.setApn(APN);
     client.setApnLogin(APN_LOGIN);
     client.setApnPass(APN_PASS);
-    
+
     client.setDebug(Serial); // Remove this line to disable debug logging of the client.
-    client.begin();
+    if (!client.begin()) {
+        Serial.println(client.errmsg);
+        while (true) {};
+    }
 
     // Add our stream objects to the streams object
     streams.addStream(uptime);
