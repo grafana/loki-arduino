@@ -53,14 +53,16 @@ void LokiClient::setDebug(Stream& stream) {
     _debug = &stream;
 }
 
-void LokiClient::setClient(Client& client){
+void LokiClient::setClient(Client& client) {
     _client = &client;
 }
-Client* LokiClient::getClient(){
+Client* LokiClient::getClient() {
     return _client;
 }
 
 bool LokiClient::begin() {
+    errmsg = nullptr;
+    //TODO check to make sure url/port/path are set.
     bool res = _begin();
     if (!res) {
         errmsg = "failed to init the client, enable debug logging for more info";
@@ -72,12 +74,13 @@ bool LokiClient::begin() {
     return true;
 };
 
-bool LokiClient::send(LokiStreams& streams) {
+LokiClient::SendResult LokiClient::send(LokiStreams& streams) {
+    errmsg = nullptr;
     uint8_t buff[streams.getBufferSize()] = { 0 };
     uint16_t len = streams.toSnappyProto(buff);
-    if (len <= 0){
+    if (len <= 0) {
         errmsg = streams.errmsg;
-        return false;
+        return LokiClient::SendResult::FAILED_DONT_RETRY;
     }
     return _send(buff, len);
 };
@@ -86,8 +89,10 @@ uint64_t LokiClient::getTimeNanos() {
     return _getTimeNanos();
 }
 
-bool LokiClient::_send(uint8_t* entry, size_t len) {
+LokiClient::SendResult LokiClient::_send(uint8_t* entry, size_t len) {
     DEBUG_PRINTLN("Sending To Loki");
+
+    _checkConnection();
 
     // Make a HTTP request:
     if (_client->connected()) {
@@ -103,7 +108,7 @@ bool LokiClient::_send(uint8_t* entry, size_t len) {
                 _client->clearWriteError();
             }
             errmsg = "Failed to connect to server, enable debug logging for more info";
-            return false;
+            return LokiClient::SendResult::FAILED_RETRYABLE;
         }
         else {
             DEBUG_PRINTLN("Connected.")
@@ -143,7 +148,8 @@ bool LokiClient::_send(uint8_t* entry, size_t len) {
         waitAttempts++;
     }
     int statusCode = _httpClient->responseStatusCode();
-    if (statusCode / 100 == 2) {
+    int statusClass = statusCode / 100;
+    if (statusClass == 2) {
         DEBUG_PRINTLN("Loki Send Succeeded");
         // We don't use the _httpClient->responseBody() method both because it allocates a string
         // and also because it doesn't understand a 204 response code not having a content-length
@@ -153,15 +159,34 @@ bool LokiClient::_send(uint8_t* entry, size_t len) {
             DEBUG_PRINT(c);
         }
     }
-    else {
+    else if (statusClass == 4) {
         DEBUG_PRINT("Loki Send Failed with code: ");
-        DEBUG_PRINT(statusCode);
+        DEBUG_PRINTLN(statusCode);
         while (_client->available()) {
             char c = _client->read();
             DEBUG_PRINT(c);
         }
-        errmsg = "Failed to send to Loki, enable debug logging for more info";
-        return false;
+        if (statusCode == 429) {
+            // Rate limits are retryable with Loki, to accomodate sudden large bursts
+            errmsg = "Failed to send to Loki, rate limited";
+            return LokiClient::SendResult::FAILED_RETRYABLE;
+        }
+        else {
+            errmsg = "Failed to send to Loki, 4xx response";
+            return LokiClient::SendResult::FAILED_DONT_RETRY;
+        }
+
     }
-    return true;
+    else {
+        DEBUG_PRINT("Loki Send Failed with code: ");
+        DEBUG_PRINTLN(statusCode);
+        while (_client->available()) {
+            char c = _client->read();
+            DEBUG_PRINT(c);
+        }
+        errmsg = "Failed to send to Loki, 5xx or unexpected status code";
+
+        return LokiClient::SendResult::FAILED_RETRYABLE;
+    }
+    return LokiClient::SendResult::SUCCESS;
 }

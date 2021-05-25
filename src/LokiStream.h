@@ -11,7 +11,7 @@ public:
     LokiStream(uint8_t batchSize, uint8_t maxEntryLength, const char* labels);
     ~LokiStream();
 
-    bool addEntry(uint64_t tsNanos, char* val, size_t length);
+    bool addEntry(uint64_t tsNanos, const char* val, size_t length);
     void resetEntries();
 
     const char* errmsg;

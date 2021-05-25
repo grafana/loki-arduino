@@ -17,9 +17,11 @@ public:
 protected:
     bool _begin();
     uint64_t _getTimeNanos();
+    void _checkConnection();
 
 private:
     bool _connected;
+    void _connect();
     GPRS* _gprs;
     GSM* _gsm;
     GSMClient* _gsmClient;

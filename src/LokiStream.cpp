@@ -21,7 +21,8 @@ LokiStream::~LokiStream() {
     delete[] _batch;
 }
 
-bool LokiStream::addEntry(uint64_t tsNanos, char* val, size_t length) {
+bool LokiStream::addEntry(uint64_t tsNanos, const char* val, size_t length) {
+    errmsg = nullptr;
     if (_batchPointer >= _batchSize) {
         errmsg = "batch full";
         return false;
@@ -39,6 +40,8 @@ bool LokiStream::addEntry(uint64_t tsNanos, char* val, size_t length) {
     //Add null terminator
     _batch[_batchPointer]->val[length] = '\0';
     _batchPointer++;
+
+    return true;
 };
 
 void LokiStream::resetEntries() {

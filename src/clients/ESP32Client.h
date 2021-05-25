@@ -4,26 +4,25 @@
 #if defined(ESP32)
 
 #include "LokiClient.h"
-#include <HTTPClient.h>
-#include <WiFiClientSecure.h>
+#include <WiFi.h>
 #include <time.h>
 #include <esp_sntp.h>
+#include <SSLClient.h>
 
 class ESP32Client : public LokiClient
 {
 public:
     ESP32Client();
+    ~ESP32Client();
 
 protected:
     bool _begin();
-    bool _send(char *entry, size_t length);
     uint64_t _getTimeNanos();
+    void _checkConnection();
     
 
 private:
-    WiFiClientSecure *_wifiClient;
-    HTTPClient *_httpClient;
-
+    WiFiClient *_wifiClient;
     void _connect();
 };
 

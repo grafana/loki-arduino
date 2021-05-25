@@ -16,7 +16,7 @@ public:
 
     void setDebug(Stream& stream);
 
-    bool addStream(LokiStream* stream);
+    bool addStream(LokiStream& stream);
 
     int16_t toSnappyProto(uint8_t* output);
 

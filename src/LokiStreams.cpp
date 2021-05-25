@@ -11,14 +11,16 @@ void LokiStreams::setDebug(Stream& stream) {
   _debug = &stream;
 }
 
-bool LokiStreams::addStream(LokiStream* stream) {
+bool LokiStreams::addStream(LokiStream& stream) {
+  errmsg = nullptr;
   if (_streamPointer >= _streamCount) {
     errmsg = "cannot add stream, max number of streams have already been added.";
     return false;
   }
 
-  _streams[_streamPointer] = stream;
+  _streams[_streamPointer] = &stream;
   _streamPointer++;
+  return true;
 };
 
 uint32_t LokiStreams::getBufferSize() {
@@ -26,6 +28,7 @@ uint32_t LokiStreams::getBufferSize() {
 }
 
 int16_t LokiStreams::toSnappyProto(uint8_t* output) {
+  errmsg = nullptr;
   DEBUG_PRINT("Begin serialization: ");
   PRINT_HEAP();
 
@@ -72,7 +75,7 @@ int16_t LokiStreams::toSnappyProto(uint8_t* output) {
   DEBUG_PRINTLN(len);
 
   if (len > _bufferSize) {
-    errmsg = "WriteRequest bufferSize is too small and will be overun during compression! Enable debug logging to see required buffer size";
+    errmsg = "WriteRequest bufferSize is too small, enable debug logging to see required buffer size";
     return -1;
   }
 

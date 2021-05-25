@@ -14,6 +14,12 @@ public:
     LokiClient();
     ~LokiClient();
 
+    enum SendResult {
+        SUCCESS,
+        FAILED_RETRYABLE,
+        FAILED_DONT_RETRY
+    };
+
     void setUrl(const char* url);
     void setPath(char* path);
     void setPort(uint16_t port);
@@ -34,7 +40,7 @@ public:
     Client* getClient();
 
     bool begin();
-    bool send(LokiStreams& streams);
+    SendResult send(LokiStreams& streams);
     uint64_t getTimeNanos();
 
     const char* errmsg;
@@ -58,12 +64,13 @@ protected:
     const char* _apnLogin;
     const char* _apnPass;
     char* _ntpServer = "pool.ntp.org";
-    
-    
+
+
     virtual bool _begin() = 0;
     virtual uint64_t _getTimeNanos() = 0;
+    virtual void _checkConnection() = 0;
 
-    bool _send(uint8_t* entry, size_t length);
+    SendResult _send(uint8_t* entry, size_t length);
 };
 
 #endif
