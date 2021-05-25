@@ -4,7 +4,8 @@
 #if defined(ARDUINO_AVR_UNO_WIFI_REV2)
 
 #include "LokiClient.h"
-#include <ArduinoBearSSL.h>
+#include <SPI.h>
+#include <WiFiNINA.h>
 
 class UnoWifi2Client : public LokiClient
 {
@@ -14,8 +15,12 @@ public:
 
 protected:
     bool _begin();
-    bool _send(char *entry, size_t length);
     uint64_t _getTimeNanos();
+    void _checkConnection();
+private:
+    int _status;
+    void _connect();
+    
 };
 
 #endif // ARDUINO_AVR_UNO_WIFI_REV2
