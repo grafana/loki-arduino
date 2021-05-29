@@ -55,7 +55,7 @@ int16_t LokiStreams::toSnappyProto(uint8_t* output) {
   DEBUG_PRINT("After serialization: ");
   PRINT_HEAP();
 
-  // for (uint8_t i = 0; i < os.bytes_written; i++)
+  // for (uint16_t i = 0; i < os.bytes_written; i++)
   // {
   //   if (buffer[i] < 0x10)
   //   {

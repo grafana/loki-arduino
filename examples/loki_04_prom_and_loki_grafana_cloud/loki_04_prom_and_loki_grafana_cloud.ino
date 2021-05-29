@@ -1,9 +1,11 @@
-#include <ArduinoBearSSL.h>
-#include "config.h"
-#include "certificates.h"
+
 #include <PromLokiTransport.h>
 #include <Loki.h>
 #include <Prometheus.h>
+#include <ArduinoBearSSL.h>
+#include "config.h"
+#include "certificates.h"
+
 
 
 // Create a client object for sending our data.
@@ -21,10 +23,8 @@ LokiStream logger(3, 100, "{job=\"esp32\",type=\"log\"}");
 
 // Create Prometheus Series
 WriteRequest req(2);
-LabelSet job = { "job", "esp32" };
-LabelSet labels[] = { job };
-TimeSeries ts1(5, "uptime_milliseconds_total", labels, 1);
-TimeSeries ts2(5, "heap_free_bytes", labels, 1);
+TimeSeries ts1(5, "uptime_milliseconds_total", "{job=\"esp32\"}");
+TimeSeries ts2(5, "heap_free_bytes", "{job=\"esp32\"}");
 
 int loopCounter = 0;
 

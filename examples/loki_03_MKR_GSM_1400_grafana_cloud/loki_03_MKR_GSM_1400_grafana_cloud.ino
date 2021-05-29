@@ -38,6 +38,7 @@ void setup() {
     transport.setApn(APN);
     transport.setApnLogin(APN_LOGIN);
     transport.setApnPass(APN_PASS);
+    transport.setDebug(Serial);
     if (!transport.begin()) {
         Serial.println(transport.errmsg);
         while (true) {};

@@ -20,8 +20,8 @@ private:
     friend class LokiStreams;
     class EntryClass;
 
-    int _batchSize = 0;
-    int _maxEntryLength = 0;
+    uint8_t _batchSize = 0;
+    uint8_t _maxEntryLength = 0;
     const char* _labels;
 
     LokiStream::EntryClass** _batch = nullptr;
