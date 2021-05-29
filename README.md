@@ -178,7 +178,11 @@ To use SSL you need to create a `certificates.h` file thankfully the wonderful S
 
 ## License Notes
 
-This library ports 2 existing libraries internally as there were not Arduino versions of these libraries already:
+This libray is licensed under the Apache2 license however it uses several libraries which use different licenses:
+
+* Arduino API and libraries are released under the LGPL, this [note describes requirements for LGPL code](https://support.arduino.cc/hc/en-us/articles/360018434279-I-have-used-Arduino-for-my-project-do-I-need-to-release-my-source-code-)
+* [ArduinoSnappyProto](https://github.com/grafana/arduino-snappy-proto) ports two libraries both released under permissive, but custom licenses. See the project for more info.
+* 
 
 * [nanopb](https://github.com/nanopb/nanopb) which is licensed under the [zlib license](https://github.com/grafana/prometheus-arduino/blob/main/src/proto/LICENSE) and code is found in the `src/proto` directory.
 * [snappy-c](https://github.com/andikleen/snappy-c) which is licensed under an [custom license](https://github.com/grafana/prometheus-arduino/blob/main/src/snappy/LICENSE) and code is found in the `src/snappy` directory.

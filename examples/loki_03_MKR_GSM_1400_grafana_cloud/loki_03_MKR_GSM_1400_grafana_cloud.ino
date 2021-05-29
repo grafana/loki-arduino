@@ -1,10 +1,12 @@
-#include <bearssl_x509.h>
+#include <ArduinoBearSSL.h>
 #include "config.h"
 #include "certificates.h"
+#include <PromLokiTransport.h>
 #include <Loki.h>
 
 // Create a client object for sending our data.
-Loki client;
+PromLokiTransport transport;
+LokiClient client(transport);
 
 
 // Define stream 1 'uptime' with a batch size of 2, and a max line length of 20 chars and the label set for the stream.
@@ -31,17 +33,22 @@ void setup() {
 
     Serial.println("Running Setup");
 
+    transport.setUseTls(true);
+    transport.setCerts(TAs, TAs_NUM);
+    transport.setApn(APN);
+    transport.setApnLogin(APN_LOGIN);
+    transport.setApnPass(APN_PASS);
+    if (!transport.begin()) {
+        Serial.println(transport.errmsg);
+        while (true) {};
+    }
+
     // Configure the client
     client.setUrl(GC_URL);
     client.setPath(GC_PATH);
     client.setPort(GC_PORT);
     client.setUser(GC_USER);
     client.setPass(GC_PASS);
-    client.setUseTls(true);
-    client.setCerts(TAs, TAs_NUM);
-    client.setApn(APN);
-    client.setApnLogin(APN_LOGIN);
-    client.setApnPass(APN_PASS);
 
     client.setDebug(Serial); // Remove this line to disable debug logging of the client.
     if (!client.begin()) {

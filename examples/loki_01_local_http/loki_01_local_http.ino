@@ -1,8 +1,10 @@
 #include "config.h"
+#include <PromLokiTransport.h>
 #include <Loki.h>
 
-// Create a client object for sending our data.
-Loki client;
+// Create a transport and client object for sending our data.
+PromLokiTransport transport;
+LokiClient client(transport);
 
 
 // Define stream 1 'uptime' with a batch size of 2, and a max line length of 20 chars and the label set for the stream.
@@ -29,12 +31,17 @@ void setup() {
 
   Serial.println("Running Setup");
 
+  transport.setWifiSsid(WIFI_SSID);
+  transport.setWifiPass(WIFI_PASS);
+  transport.setDebug(Serial);  // Remove this line to disable debug logging of the transport layer. 
+  if (!transport.begin()){
+    Serial.println(transport.errmsg);
+    while(true){};
+  }
+  
   client.setUrl(URL);
   client.setPort(PORT);
   client.setPath(PATH);
-  client.setWifiSsid(WIFI_SSID);
-  client.setWifiPass(WIFI_PASS);
-
   client.setDebug(Serial); // Remove this line to disable debug logging of the client.
   if (!client.begin()) {
     Serial.println(client.errmsg);

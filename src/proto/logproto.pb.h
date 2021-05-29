@@ -3,7 +3,7 @@
 
 #ifndef PB_LOGPROTO_LOGPROTO_PB_H_INCLUDED
 #define PB_LOGPROTO_LOGPROTO_PB_H_INCLUDED
-#include "pb.h"
+#include <pb.h>
 #include "timestamp.pb.h"
 
 #if PB_PROTO_HEADER_VERSION != 40

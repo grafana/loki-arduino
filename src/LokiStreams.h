@@ -3,9 +3,8 @@
 
 #include <Arduino.h>
 #include "LokiStream.h"
-#include "snappy/snappy.h"
-#include "proto/pb.h"
-#include "proto/pb_encode.h"
+#include <snappy.h>
+#include <pb.h>
 #include "proto/logproto.pb.h"
 #include "LokiDebug.h"
 
@@ -22,7 +21,7 @@ public:
 
     uint32_t getBufferSize();
 
-    const char* errmsg;
+    char* errmsg;
 
 private:
     uint16_t _streamCount = 0;

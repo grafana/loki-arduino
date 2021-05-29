@@ -1,14 +1,13 @@
 #include "LokiClient.h"
 
-LokiClient::LokiClient() {
+LokiClient::LokiClient() {};
 
-};
+LokiClient::LokiClient(PromLokiTransport& transport) : _transport(&transport) {};
 
 LokiClient::~LokiClient() {
     if (_httpClient) {
         delete _httpClient;
     }
-
 };
 
 void LokiClient::setUrl(const char* url) {
@@ -16,61 +15,51 @@ void LokiClient::setUrl(const char* url) {
 };
 void LokiClient::setPath(char* path) {
     _path = path;
-}
+};
 void LokiClient::setPort(uint16_t port) {
     _port = port;
-}
+};
 void LokiClient::setUser(const char* user) {
     _user = user;
 };
 void LokiClient::setPass(const char* pass) {
     _pass = pass;
 };
-void LokiClient::setUseTls(bool useTls) {
-    _useTls = useTls;
-}
-void LokiClient::setCerts(const br_x509_trust_anchor* myTAs, int myNumTAs) {
-    _TAs = myTAs;
-    _numTAs = myNumTAs;
-};
-void LokiClient::setWifiSsid(const char* wifiSsid) {
-    _wifiSsid = wifiSsid;
-}
-void LokiClient::setWifiPass(const char* wifiPass) {
-    _wifiPass = wifiPass;
-}
-void LokiClient::setApn(const char* apn) {
-    _apn = apn;
-}
-void LokiClient::setApnLogin(const char* apnLogin) {
-    _apnLogin = apnLogin;
-}
-void LokiClient::setApnPass(const char* apnPass) {
-    _apnPass = apnPass;
-}
-void LokiClient::setNtpServer(char* ntpServer) {
-    _ntpServer = ntpServer;
-}
 
 void LokiClient::setDebug(Stream& stream) {
     _debug = &stream;
-}
+};
 
-void LokiClient::setClient(Client& client) {
-    _client = &client;
-}
-Client* LokiClient::getClient() {
-    return _client;
-}
+void LokiClient::setTransport(PromLokiTransport& transport) {
+    _transport = &transport;
+};
+
+uint64_t LokiClient::getTimeNanos() {
+    return _transport->getTimeMillis() * 1000 * 1000;
+};
 
 bool LokiClient::begin() {
     errmsg = nullptr;
-    //TODO check to make sure url/port/path are set.
-    bool res = _begin();
-    if (!res) {
-        errmsg = "failed to init the client, enable debug logging for more info";
+
+    if (!_url) {
+        errmsg = "you must set a url with setUrl()";
         return false;
     }
+    if (!_path) {
+        errmsg = "you must set a path with setPath()";
+        return false;
+    }
+    if (!_port) {
+        errmsg = "you must set a port with setPort()";
+        return false;
+    }
+
+    if (!_transport) {
+        errmsg = "you must set a transport with setTransport() first";
+        return false;
+    }
+    _client = _transport->getClient();
+
     _httpClient = new HttpClient(*_client, _url, _port);
     _httpClient->setTimeout(15000);
     _httpClient->setHttpResponseTimeout(15000);
@@ -89,14 +78,12 @@ LokiClient::SendResult LokiClient::send(LokiStreams& streams) {
     return _send(buff, len);
 };
 
-uint64_t LokiClient::getTimeNanos() {
-    return _getTimeNanos();
-}
 
 LokiClient::SendResult LokiClient::_send(uint8_t* entry, size_t len) {
     DEBUG_PRINTLN("Sending To Loki");
 
-    _checkConnection();
+    //TODO should check and handle result here.
+    _transport->checkAndReconnectConnection();
 
     // Make a HTTP request:
     if (_client->connected()) {
@@ -193,4 +180,4 @@ LokiClient::SendResult LokiClient::_send(uint8_t* entry, size_t len) {
         return LokiClient::SendResult::FAILED_RETRYABLE;
     }
     return LokiClient::SendResult::SUCCESS;
-}
+};
