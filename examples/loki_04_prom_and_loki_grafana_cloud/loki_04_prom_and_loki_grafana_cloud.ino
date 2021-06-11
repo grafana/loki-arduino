@@ -1,11 +1,9 @@
 
-#include <PromLokiTransport.h>
-#include <Loki.h>
-#include <Prometheus.h>
-#include <ArduinoBearSSL.h>
 #include "config.h"
 #include "certificates.h"
-
+#include <PromLokiTransport.h>
+#include <GrafanaLoki.h>
+#include <PrometheusArduino.h>
 
 
 // Create a client object for sending our data.
@@ -39,7 +37,7 @@ void setup() {
     Serial.println(freeMemory());
 
     transport.setUseTls(true);
-    transport.setCerts(TAs, TAs_NUM);
+    transport.setCerts(grafanaCert, strlen(grafanaCert));
     transport.setWifiSsid(WIFI_SSID);
     transport.setWifiPass(WIFI_PASSWORD);
     transport.setDebug(Serial);

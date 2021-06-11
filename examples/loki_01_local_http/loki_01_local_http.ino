@@ -1,6 +1,6 @@
 #include "config.h"
 #include <PromLokiTransport.h>
-#include <Loki.h>
+#include <GrafanaLoki.h>
 
 // Create a transport and client object for sending our data.
 PromLokiTransport transport;

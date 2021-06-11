@@ -38,6 +38,10 @@ uint64_t LokiClient::getTimeNanos() {
     return _transport->getTimeMillis() * 1000 * 1000;
 };
 
+uint16_t LokiClient::getReconnectCount() {
+    return _reconnectCount;
+};
+
 bool LokiClient::begin() {
     errmsg = nullptr;
 
@@ -61,8 +65,8 @@ bool LokiClient::begin() {
     _client = _transport->getClient();
 
     _httpClient = new HttpClient(*_client, _url, _port);
-    _httpClient->setTimeout(15000);
-    _httpClient->setHttpResponseTimeout(15000);
+    _httpClient->setTimeout(5000);
+    _httpClient->setHttpResponseTimeout(5000);
     _httpClient->connectionKeepAlive();
     return true;
 };
@@ -103,6 +107,7 @@ LokiClient::SendResult LokiClient::_send(uint8_t* entry, size_t len) {
         }
         else {
             DEBUG_PRINTLN("Connected.")
+            _reconnectCount++;
         }
     }
 
@@ -130,15 +135,22 @@ LokiClient::SendResult LokiClient::_send(uint8_t* entry, size_t len) {
 
     DEBUG_PRINTLN("Sent, waiting for response");
     uint8_t waitAttempts = 0;
-    // The default wait in responseStatusCode is 1s which is really long and can't easily be changed
-    // so instead we will loop for data and make sure it's available before checking responseCode
-    // 100 * 100 = 10,000 whic is a timeout of 10s and is less than the 15s timeout set in the client
-    // so that the httpclient can handle actual timeouts.
-    while (!_client->available() && waitAttempts < 100) {
+    // The default wait in responseStatusCode is 1s which means the minimum return is at least 1s if data
+    // is not immediately available. So instead we will loop for data for the first second allowing us 
+    // to check for data much quicker
+    while (!_client->available() && waitAttempts < 10) {
         delay(100);
         waitAttempts++;
     }
     int statusCode = _httpClient->responseStatusCode();
+    if (statusCode == HTTP_ERROR_TIMED_OUT) {
+        errmsg = "Timed out connecting to Loki";
+        return LokiClient::SendResult::FAILED_RETRYABLE;
+    }
+    if (statusCode == HTTP_ERROR_INVALID_RESPONSE) {
+        errmsg = "Invalid response from server, correct address and port?";
+        return LokiClient::SendResult::FAILED_RETRYABLE;
+    }
     int statusClass = statusCode / 100;
     if (statusClass == 2) {
         DEBUG_PRINTLN("Loki Send Succeeded");

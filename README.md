@@ -170,10 +170,7 @@ If you are working on a very memory constrained device, keep your `batchSize`, `
 
 TLS/SSL configuration is difficult with Arduinos as the hardware is barely powerful enough (or not powerful enough at all in some cases) to do SSL negotiations, and there are several types of hardware and software libraries for doing SSL.
 
-For most devices the [SSLClient library](https://github.com/OPEnSLab-OSU/SSLClient) is used, which is based on BearSSL but seemed to be more resource efficient in testing.
-
-To use SSL you need to create a `certificates.h` file thankfully the wonderful SSLClient library provides some documentation and a number of ways to make this fairly easy: [check out the project docs](https://github.com/OPEnSLab-OSU/SSLClient/blob/master/TrustAnchors.md#generating-trust-anchors)
-
+The [PromLokiTransport](https://github.com/grafana/arduino-prom-loki-transport) library attempts to simplify this by providing the libraries and code for making SSL connections, check out that project for more information, or just look at the `loki_02_grafana_cloud.ino` example to see how to load a CA certificate and perform SSL connections.
 
 
 ## License Notes
@@ -181,10 +178,5 @@ To use SSL you need to create a `certificates.h` file thankfully the wonderful S
 This libray is licensed under the Apache2 license however it uses several libraries which use different licenses:
 
 * Arduino API and libraries are released under the LGPL, this [note describes requirements for LGPL code](https://support.arduino.cc/hc/en-us/articles/360018434279-I-have-used-Arduino-for-my-project-do-I-need-to-release-my-source-code-)
-* [ArduinoSnappyProto](https://github.com/grafana/arduino-snappy-proto) ports two libraries both released under permissive, but custom licenses. See the project for more info.
-* 
-
-* [nanopb](https://github.com/nanopb/nanopb) which is licensed under the [zlib license](https://github.com/grafana/prometheus-arduino/blob/main/src/proto/LICENSE) and code is found in the `src/proto` directory.
-* [snappy-c](https://github.com/andikleen/snappy-c) which is licensed under an [custom license](https://github.com/grafana/prometheus-arduino/blob/main/src/snappy/LICENSE) and code is found in the `src/snappy` directory.
-
-Some small modifications were made to both sources to get them to compile and work on Arduino and are tagged with `// E.Welch` 
+* [SnappyProto](https://github.com/grafana/arduino-snappy-proto) ports two libraries both released under permissive, but custom licenses. See the project for more info.
+* [PromLokiTransport](https://github.com/grafana/arduino-prom-loki-transport) which is Apache2 but contains some MIT licensed files from [BearSSL](https://bearssl.org/)

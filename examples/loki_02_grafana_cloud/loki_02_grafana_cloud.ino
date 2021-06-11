@@ -1,8 +1,7 @@
-#include <ArduinoBearSSL.h>
 #include "config.h"
 #include "certificates.h"
 #include <PromLokiTransport.h>
-#include <Loki.h>
+#include <GrafanaLoki.h>
 
 // Create a transport and client object for sending our data.
 PromLokiTransport transport;
@@ -36,7 +35,7 @@ void setup() {
     transport.setWifiSsid(WIFI_SSID);
     transport.setWifiPass(WIFI_PASSWORD);
     transport.setUseTls(true);
-    transport.setCerts(TAs, TAs_NUM);
+    transport.setCerts(grafanaCert, strlen(grafanaCert));
     transport.setDebug(Serial);  // Remove this line to disable debug logging of the transport layer. 
     if (!transport.begin()) {
         Serial.println(transport.errmsg);

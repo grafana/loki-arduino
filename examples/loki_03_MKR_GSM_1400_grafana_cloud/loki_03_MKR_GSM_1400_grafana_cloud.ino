@@ -1,8 +1,7 @@
-#include <ArduinoBearSSL.h>
 #include "config.h"
 #include "certificates.h"
 #include <PromLokiTransport.h>
-#include <Loki.h>
+#include <GrafanaLoki.h>
 
 // Create a client object for sending our data.
 PromLokiTransport transport;
@@ -34,7 +33,7 @@ void setup() {
     Serial.println("Running Setup");
 
     transport.setUseTls(true);
-    transport.setCerts(TAs, TAs_NUM);
+    transport.setCerts(grafanaCert, strlen(grafanaCert));
     transport.setApn(APN);
     transport.setApnLogin(APN_LOGIN);
     transport.setApnPass(APN_PASS);
