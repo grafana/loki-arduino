@@ -26,26 +26,34 @@ int loopCounter = 0;
 void setup() {
   Serial.begin(115200);
   //Serial.begin(9600);
-  while (!Serial)
-    delay(10); // will pause Zero, Leonardo, etc until serial console opens
+  
+  // Wait 5s for serial connection or continue without it
+  // some boards like the esp32 will run whether or not the 
+  // serial port is connected, others like the MKR boards will wait
+  // for ever if you don't break the loop.
+  uint8_t serialTimeout;
+  while (!Serial && serialTimeout < 50) {
+    delay(100);
+    serialTimeout++;
+  }
 
   Serial.println("Running Setup");
 
   transport.setWifiSsid(WIFI_SSID);
   transport.setWifiPass(WIFI_PASS);
   transport.setDebug(Serial);  // Remove this line to disable debug logging of the transport layer. 
-  if (!transport.begin()){
+  if (!transport.begin()) {
     Serial.println(transport.errmsg);
-    while(true){};
+    while (true) {};
   }
-  
+
   client.setUrl(URL);
   client.setPort(PORT);
   client.setPath(PATH);
   client.setDebug(Serial); // Remove this line to disable debug logging of the client.
   if (!client.begin()) {
     Serial.println(client.errmsg);
-    while(true){};
+    while (true) {};
   }
 
   // Add our stream objects to the streams object
