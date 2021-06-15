@@ -31,7 +31,7 @@ public:
 
     void setTransport(PromLokiTransport& transport);
     uint64_t getTimeNanos();
-    uint16_t getReconnectCount();
+    uint16_t getConnectCount();
 
     bool begin();
     SendResult send(LokiStreams& streams);
@@ -49,7 +49,7 @@ protected:
     uint16_t _port;
     const char* _user;
     const char* _pass;
-    uint16_t _reconnectCount = 0;
+    uint16_t _connectCount = 0;
 
     SendResult _send(uint8_t* entry, size_t length);
 

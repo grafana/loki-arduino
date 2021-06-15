@@ -38,8 +38,8 @@ uint64_t LokiClient::getTimeNanos() {
     return _transport->getTimeMillis() * 1000 * 1000;
 };
 
-uint16_t LokiClient::getReconnectCount() {
-    return _reconnectCount;
+uint16_t LokiClient::getConnectCount() {
+    return _connectCount;
 };
 
 bool LokiClient::begin() {
@@ -107,7 +107,7 @@ LokiClient::SendResult LokiClient::_send(uint8_t* entry, size_t len) {
         }
         else {
             DEBUG_PRINTLN("Connected.")
-            _reconnectCount++;
+            _connectCount++;
         }
     }
 
