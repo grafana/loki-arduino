@@ -7,7 +7,7 @@
 #include <ArduinoHttpClient.h>
 #include "LokiDebug.h"
 
-static const char UserAgent[] PROGMEM = "loki-arduino/0.1.0";
+static const char UserAgent[] PROGMEM = "loki-arduino/0.2.2";
 
 class LokiClient {
 public:
