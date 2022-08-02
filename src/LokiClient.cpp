@@ -102,7 +102,7 @@ LokiClient::SendResult LokiClient::_send(uint8_t* entry, size_t len) {
                 DEBUG_PRINTLN(_client->getWriteError());
                 _client->clearWriteError();
             }
-            errmsg = "Failed to connect to server, enable debug logging for more info";
+            errmsg = "Failed to connect to remote Loki endpoint, enable debug logging for more info";
             return LokiClient::SendResult::FAILED_RETRYABLE;
         }
         else {
@@ -148,7 +148,7 @@ LokiClient::SendResult LokiClient::_send(uint8_t* entry, size_t len) {
         return LokiClient::SendResult::FAILED_RETRYABLE;
     }
     if (statusCode == HTTP_ERROR_INVALID_RESPONSE) {
-        errmsg = "Invalid response from server, correct address and port?";
+        errmsg = "Invalid response from remote Loki endpoint, correct address and port?";
         return LokiClient::SendResult::FAILED_RETRYABLE;
     }
     int statusClass = statusCode / 100;
