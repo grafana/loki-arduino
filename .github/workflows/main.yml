@@ -9,25 +9,35 @@ on:
 
   workflow_dispatch:
 
+permissions: {}
+
 jobs:
   build:
     runs-on: ubuntu-latest
     container:
       image: slimbean/arduino-cli:latest
+    permissions:
+      contents: read
+
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       
       - name: Checkout SnappyProto
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           repository: grafana/arduino-snappy-proto
           path: arduino-snappy-proto
+          persist-credentials: false
+
       - name: Checkout PromLokiTransport
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           repository: grafana/arduino-prom-loki-transport
           path: arduino-prom-loki-transport
+          persist-credentials: false
           
       - name: Dump Config
         run: arduino-cli config dump --verbose
